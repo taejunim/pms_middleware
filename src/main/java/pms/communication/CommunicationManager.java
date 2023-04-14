@@ -32,7 +32,7 @@ public class CommunicationManager {
         if (essType.equals("01")) {
             executePCS();
         } else if (essType.equals("02")) {
-            
+
         }
     }
 

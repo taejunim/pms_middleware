@@ -27,7 +27,7 @@ public class Main {
 
         //new BackupClient().connectSession();
 
-        executeCommunication();
+        //executeCommunication();
 
         /*EVChargerClient evChargerClient = new EVChargerClient();
         evChargerClient.request();
