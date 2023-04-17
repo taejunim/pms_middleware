@@ -8,6 +8,7 @@ import pms.system.backup.BackupClient;
 import pms.system.ess.ESSController;
 import pms.system.ess.ESSScheduleManager;
 import pms.vo.device.external.EVChargerVO;
+import pms.vo.system.PmsVO;
 
 import java.util.List;
 
@@ -19,6 +20,9 @@ public class Main {
      */
     public static void main(String[] args) {
         new PMSManager().initSystem();
+
+        System.out.println(PmsVO.sensors);
+        System.out.println(PmsVO.airConditioners);
 
         //new ESSController().setConfig();
         //new ESSScheduleManager().checkSchedule();

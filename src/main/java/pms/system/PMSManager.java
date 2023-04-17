@@ -233,9 +233,9 @@ public class PMSManager {
      * @param categorySub 장비 하위 분류 코드
      */
     private void setSensors(String category, String categorySub) {
-        List<DeviceVO> sensorsByCategory = deviceQuery.getDeviceList(category, categorySub);  //센서 하위 분류별 센서 목록
+        List<DeviceVO> sensorList = deviceQuery.getDeviceList(category, categorySub);  //센서 하위 분류별 센서 목록
 
-        PmsVO.sensors.put(categorySub, sensorsByCategory);
+        PmsVO.sensors.put(categorySub, sensorList);
     }
 
     /**
@@ -245,7 +245,9 @@ public class PMSManager {
      * @param categorySub 장비 하위 분류 코드
      */
     private void setAirConditioners(String category, String categorySub) {
+        List<DeviceVO> airConditionerList = deviceQuery.getDeviceList(category, categorySub);
 
+        PmsVO.airConditioners.put(categorySub, airConditionerList);
     }
 
     private void setMiddleware(String category, String categorySub) {
