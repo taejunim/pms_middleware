@@ -1,6 +1,5 @@
 package pms.communication.web;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -17,6 +16,7 @@ import java.util.List;
 import static pms.communication.CommunicationManager.deviceProperties;
 
 public class WebReceiver extends WebClient {
+    private final String ESS_TYPE = PmsVO.ess.getEssType();
 
     public void receive(String json) {
         JsonElement jsonElement = JsonParser.parseString(json);
@@ -68,9 +68,17 @@ public class WebReceiver extends WebClient {
             case "0302":
                 break;
             case "8001":
-                break;
-            case "8002":
                 break;*/
+            case "8002":
+                List<DeviceVO> airConditioners = PmsVO.airConditioners.get(deviceCategorySub);
+
+                for (DeviceVO airConditioner : airConditioners) {
+                    if (airConditioner.getDeviceCode().equals(deviceCode)) {
+                        isCheck = true;
+                        break;
+                    }
+                }
+                break;
             case "9001":
                 if (PmsVO.middleware.getDeviceCode().equals(deviceCode)) {
                     isCheck = true;
@@ -88,25 +96,49 @@ public class WebReceiver extends WebClient {
         String controlCode = dataObject.get("controlCode").getAsString();
 
         if (targetId.equals(MIDDLEWARE_ID)) {
-            switch (controlCode) {
-                case "0101010100":
-                case "0101010101":
-                case "0101010102":
-                case "0101020100":
-                case "0101020101":
-                case "0101020102":
-                case "0200010200":
-                case "0200010201":
-                case "0200010202":
-                case "0200010203":
-                case "0200010204":
-                case "0200010205":
-                case "0200010206":
-                case "9001019000":
-                case "9001019098":
-                case "9001019099":
-                    isCheck = true;
-                    break;
+            if (ESS_TYPE.equals("01")) {
+                switch (controlCode) {
+                    case "0101010100":
+                    case "0101010101":
+                    case "0101010102":
+                    case "0101020100":
+                    case "0101020101":
+                    case "0101020102":
+                    case "0200010200":
+                    case "0200010201":
+                    case "0200010202":
+                    case "0200010203":
+                    case "0200010204":
+                    case "0200010205":
+                    case "0200010206":
+                    case "9001019000":
+                    case "9001019001":
+                    case "9001019002":
+                    case "9001019098":
+                    case "9001019099":
+                        isCheck = true;
+                        break;
+                }
+            } else if (ESS_TYPE.equals("02")) {
+                switch (controlCode) {
+                    case "0101010100":
+                    case "0101010101":
+                    case "0101010102":
+                    case "0101020100":
+                    case "0101020101":
+                    case "0101020102":
+                    case "8002018098":
+                    case "8002018099":
+                    case "8002028098":
+                    case "8002028099":
+                    case "9001019000":
+                    case "9001019001":
+                    case "9001019002":
+                    case "9001019098":
+                    case "9001019099":
+                        isCheck = true;
+                        break;
+                }
             }
         }
 
@@ -125,7 +157,7 @@ public class WebReceiver extends WebClient {
                 String deviceCode = jsonObject.get("deviceCode").getAsString();
                 String controlCode = dataObject.get("controlCode").getAsString();
 
-                ControlRequestVO requestVO = ControlUtil.setRemoteControlRequestVO(remoteId, "02", deviceCategory, controlCode);
+                ControlRequestVO requestVO = ControlUtil.setRemoteControlRequestVO(remoteId, "02", deviceCategorySub, controlCode);
 
                 if (requestVO != null) {
                     switch (deviceCategorySub) {
@@ -135,14 +167,15 @@ public class WebReceiver extends WebClient {
                         case "0200":
                             requestPCS(requestVO);
                             break;
-                /*case "0301":
-                    break;
-                case "0302":
-                    break;
-                case "8001":
-                    break;
-                case "8002":
-                    break;*/
+                        /*case "0301":
+                            break;
+                        case "0302":
+                            break;
+                        case "8001":
+                            break;*/
+                        case "8002":
+                            requestAirConditioner(requestVO);
+                            break;
                         case "9001":
                             break;
                     }
@@ -165,6 +198,15 @@ public class WebReceiver extends WebClient {
     private void requestPCS(ControlRequestVO requestVO) {
         PCSClient pcsClient = new PCSClient();
         pcsClient.setControlRequest(requestVO);
+    }
+
+    private void requestAirConditioner(ControlRequestVO requestVO) {
+        //ESS 유형 별 공조장치 제어(01: 이동형, 02: 고정형)
+        if (ESS_TYPE.equals("01")) {
+
+        } else if (ESS_TYPE.equals("02")) {
+
+        }
     }
 
     private void requestMiddleware(ControlRequestVO requestVO) {

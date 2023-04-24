@@ -14,7 +14,7 @@ import java.util.List;
 
 public class ControlUtil {
 
-    private static int getAddress(String deviceCategory, String controlType) {
+    private static int getAddress(String deviceCategory, String deviceCode, String controlType) {
         int address = 0;
 
         switch (deviceCategory) {
@@ -24,8 +24,32 @@ public class ControlUtil {
             case "02":
                 address = getPCSControlAddress(controlType);
                 break;
+            case "80":
+                address = getAirConditionerAddress(deviceCode, controlType);
+                break;
             case "90":
                 break;
+        }
+
+        return address;
+    }
+
+    /**
+     * 에어컨 제어 주소 호출 - 차후 수정 필요
+     *
+     * @param deviceCode
+     * @param controlType
+     * @return
+     */
+    private static int getAirConditionerAddress(String deviceCode, String controlType) {
+        int address = 0;
+
+        if (controlType.equals("8098") || controlType.equals("8090")) {
+            if (deviceCode.equals("800201")) {
+                address = 1;
+            } else if (deviceCode.equals("800202")) {
+                address = 2;
+            }
         }
 
         return address;
@@ -79,8 +103,10 @@ public class ControlUtil {
     public static ControlRequestVO setRemoteControlRequestVO(String remoteId, String type, String deviceCategory, String controlCode) {
         int requestDate = DateTimeUtil.getUnixTimestamp();
         DeviceVO.ControlVO controlVO = PMSCode.getControlVO(controlCode); //PmsVO.controlCodes.get(controlCode);
+        String deviceCode = controlVO.getDeviceCode();
         String controlType = controlVO.getControlType();
-        int address = getAddress(deviceCategory, controlType);
+
+        int address = getAddress(deviceCategory, deviceCode, controlType);
         int controlValue = controlVO.getControlValue();
 
         ControlRequestVO requestVO = new ControlRequestVO();
@@ -101,18 +127,6 @@ public class ControlUtil {
                 System.out.println("EV 충전기 모두 충전 중 ESS 충전 불가!");
                 return null;
             }
-
-            /*if (chargers.size() == 0) {
-                controlValue = new ESSManager().calculateLimitPower();
-            } else {
-                if (chargers.size() == totalChargerCount) {
-                    System.out.println("EV 충전기 모두 충전 중 ESS 충전 불가!");
-                    return null;
-                } else if (chargers.size() < totalChargerCount) {
-                    controlValue = 5;
-                    System.out.println("EV 충전기 일부 충전 중 ESS 저전력 충전 가능!");
-                }
-            }*/
         }
 
         requestVO.setRemoteId(remoteId);
@@ -130,8 +144,10 @@ public class ControlUtil {
     public static ControlRequestVO setControlRequestVO(String type, String detailType, String deviceCategory, String controlCode, String controlValue, String referenceCode) {
         int requestDate = DateTimeUtil.getUnixTimestamp();
         DeviceVO.ControlVO controlVO = PMSCode.getControlVO(controlCode); //PmsVO.controlCodes.get(controlCode);
+        String deviceCode = controlVO.getDeviceCode();
         String controlType = controlVO.getControlType();
-        int address = getAddress(deviceCategory, controlType);
+
+        int address = getAddress(deviceCategory, deviceCode, controlType);
 
         ControlRequestVO requestVO = new ControlRequestVO();
         requestVO.setType(type);
