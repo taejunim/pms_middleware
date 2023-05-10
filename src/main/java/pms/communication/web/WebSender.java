@@ -48,14 +48,8 @@ public class WebSender extends WebClient {
                 bodyJson = setAirConditionerDataJson(deviceVO.getDeviceRoom(), deviceData, errors);
                 break;
         }
-
-        System.out.println("바디제이슨: " + bodyJson);
-
         jsonObject.add("data", bodyJson);
-
         String json = getJson(jsonObject);
-
-        System.out.println("000000000 " + json);
 
         webSocketClient.send(json);
     }
