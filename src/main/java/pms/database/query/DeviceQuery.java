@@ -2,8 +2,10 @@ package pms.database.query;
 
 import pms.database.QueryUtil;
 import pms.database.SqlSession;
+import pms.vo.device.AirConditionerVO;
 import pms.vo.device.BmsVO;
 import pms.vo.device.PcsVO;
+import pms.vo.device.SensorVO;
 import pms.vo.system.DeviceVO;
 
 import java.util.ArrayList;
@@ -163,6 +165,39 @@ public class DeviceQuery {
         );
 
         String values = QueryUtil.createInsertValue(pcsVO);
+        sql.append(values);
+
+        return sqlSession.insert(sql.toString());
+    }
+
+    public int insertSensorsData(List<SensorVO> sensorsData) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO RAW_SENSOR" +
+                " (SENSOR_CODE, REG_DATE, SENSOR_STATUS," +
+                " MEASURE1, MEASURE2, MEASURE3, WARNING_FLAG, FAULT_FLAG) " +
+                "VALUES "
+        );
+
+        List<Object> voList = new ArrayList<>(sensorsData);
+
+        String values = QueryUtil.createInsertValues(voList);
+        sql.append(values);
+
+        return sqlSession.insert(sql.toString());
+    }
+
+    public int insertAirConditionersData(List<AirConditionerVO> airConditionerData) {
+        StringBuilder sql = new StringBuilder();
+
+        sql.append("INSERT INTO RAW_AIR_CONDITIONER " +
+                "(AIR_CONDITIONER_CODE, REG_DATE, OPERATION_STATUS, OPERATION_MODE_STATUS, " +
+                "INDOOR_TEMPERATURE, SET_TEMPERATURE, WARNING_FLAG, FAULT_FLAG) " +
+                "VALUES "
+        );
+
+        List<Object> voList = new ArrayList<>(airConditionerData);
+
+        String values = QueryUtil.createInsertValues(voList);
         sql.append(values);
 
         return sqlSession.insert(sql.toString());
