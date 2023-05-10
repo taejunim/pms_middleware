@@ -4,8 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import pms.system.ess.ESSManager;
+import pms.vo.device.AirConditionerVO;
 import pms.vo.device.BmsVO;
 import pms.vo.device.PcsVO;
+import pms.vo.device.SensorVO;
 import pms.vo.system.DeviceVO;
 
 import java.util.List;
@@ -39,11 +41,22 @@ public class WebSender extends WebClient {
             case "02":
                 bodyJson = setPCSDataJson(deviceData, errors);
                 break;
+            case "04":
+                bodyJson = setSensorDataJson(deviceVO.getDeviceRoom(), deviceData, errors);
+                break;
+            case "80":
+                bodyJson = setAirConditionerDataJson(deviceVO.getDeviceRoom(), deviceData, errors);
+                break;
         }
+
+        System.out.println("바디제이슨: " + bodyJson);
 
         jsonObject.add("data", bodyJson);
 
         String json = getJson(jsonObject);
+
+        System.out.println("000000000 " + json);
+
         webSocketClient.send(json);
     }
 
@@ -238,5 +251,35 @@ public class WebSender extends WebClient {
         String errorFlag = setErrorFlag(pcsVO.getWarningFlag(), pcsVO.getFaultFlag());
 
         return addErrorJson(bodyJson, pcsVO.getWarningFlag(), pcsVO.getFaultFlag(), errorFlag, errors);
+    }
+
+    private JsonObject setSensorDataJson(String roomNum, Object deviceData, List<String> errors) {
+        SensorVO sensorVO = (SensorVO) deviceData;
+
+        JsonObject bodyJson = new JsonObject();
+        bodyJson.addProperty("deviceRoom", roomNum);
+        bodyJson.addProperty("sensorStatus", sensorVO.getSensorStatus());
+        bodyJson.addProperty("measure1", sensorVO.getMeasure1());
+        bodyJson.addProperty("measure2", sensorVO.getMeasure2());
+        bodyJson.addProperty("measure3", sensorVO.getMeasure3());
+
+        String errorFlag = setErrorFlag(sensorVO.getWarningFlag(), sensorVO.getFaultFlag());
+
+        return addErrorJson(bodyJson, sensorVO.getWarningFlag(), sensorVO.getFaultFlag(), errorFlag, errors);
+    }
+
+    private JsonObject setAirConditionerDataJson(String roomNum, Object deviceData, List<String> errors) {
+        AirConditionerVO airConditionerVO = (AirConditionerVO) deviceData;
+
+        JsonObject bodyJson = new JsonObject();
+        bodyJson.addProperty("deviceRoom", roomNum);
+        bodyJson.addProperty("operationStatus", airConditionerVO.getOperationStatus());
+//        bodyJson.addProperty("operationModeStatus", airConditionerVO.getOperationModeStatus());
+//        bodyJson.addProperty("indoorTemperature", airConditionerVO.getIndoorTemperature());
+
+        String errorFlag = setErrorFlag(airConditionerVO.getWarningFlag(), airConditionerVO.getFaultFlag());
+
+
+        return addErrorJson(bodyJson, airConditionerVO.getWarningFlag(), airConditionerVO.getFaultFlag(), errorFlag, errors);
     }
 }
