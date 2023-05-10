@@ -44,7 +44,7 @@ public class ControlUtil {
     private static int getAirConditionerAddress(String deviceCode, String controlType) {
         int address = 0;
 
-        if (controlType.equals("8098") || controlType.equals("8090")) {
+        if (controlType.equals("8098") || controlType.equals("8099")) {
             if (deviceCode.equals("800201")) {
                 address = 1;
             } else if (deviceCode.equals("800202")) {
@@ -112,7 +112,7 @@ public class ControlUtil {
         ControlRequestVO requestVO = new ControlRequestVO();
 
         if (controlType.equals("0205")) {
-            EVChargerClient evChargerClient = new EVChargerClient();
+            /*EVChargerClient evChargerClient = new EVChargerClient();
             evChargerClient.request();
 
             List<EVChargerVO> chargers = evChargerClient.getEVChargers("ess-charge");
@@ -126,7 +126,7 @@ public class ControlUtil {
             } else if (chargers.size() == 0) {
                 System.out.println("EV 충전기 모두 충전 중 ESS 충전 불가!");
                 return null;
-            }
+            }*/
         }
 
         requestVO.setRemoteId(remoteId);
