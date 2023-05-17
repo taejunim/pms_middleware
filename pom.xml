@@ -82,6 +82,15 @@
             <version>2.3.2</version>
         </dependency>
 
+        <!-- Comment: PLC4J, Quartz 라이브러리의 버전 호환성으로 추가 -->
+        <!-- SLF4J API Module -->
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.5</version>
+        </dependency>
+
         <!-- SLF4J NOP Binding -->
         <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-nop -->
         <dependency>
@@ -122,6 +131,14 @@
             <groupId>org.apache.plc4x</groupId>
             <artifactId>plc4j-api</artifactId>
             <version>0.10.0</version>
+        </dependency>
+
+        <!-- JSSC : Java Simple Serial Connector -->
+        <!-- https://code.google.com/archive/p/java-simple-serial-connector -->
+        <dependency>
+            <groupId>io.github.java-native</groupId>
+            <artifactId>jssc</artifactId>
+            <version>2.9.4</version>
         </dependency>
     </dependencies>
 </project>
