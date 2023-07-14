@@ -6,6 +6,7 @@ import lombok.Data;
 public class SensorVO {
     private String sensorCode;
     private int regDate;
+    private String sensorStatus;
     private String measure1;
     private String measure2;
     private String measure3;

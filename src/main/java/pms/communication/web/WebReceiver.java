@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import pms.communication.device.bms.BMSClient;
+import pms.communication.device.mobile.ioboard.IOBoardClient;
 import pms.communication.device.pcs.PCSClient;
 import pms.communication.external.smarthub.EVChargerClient;
 import pms.system.ess.ControlUtil;
@@ -25,7 +26,7 @@ public class WebReceiver extends WebClient {
         if (jsonObject != null) {
             String id = jsonObject.get("id").getAsString();
             String eventType = jsonObject.get("eventType").getAsString();
-            //System.out.println(jsonObject);
+//            System.out.println("웹소켓 결과"+jsonObject);     //!!!Web send 성공여부 출력
             if (!id.equals(deviceProperties.getProperty("charger.station.id"))) {
                 if (eventType.equals("req")) {
                     String dataType = jsonObject.get("dataType").getAsString();
@@ -157,7 +158,7 @@ public class WebReceiver extends WebClient {
                 String deviceCode = jsonObject.get("deviceCode").getAsString();
                 String controlCode = dataObject.get("controlCode").getAsString();
 
-                ControlRequestVO requestVO = ControlUtil.setRemoteControlRequestVO(remoteId, "02", deviceCategorySub, controlCode);
+                ControlRequestVO requestVO = ControlUtil.setRemoteControlRequestVO(remoteId, "02", deviceCategory, controlCode);
 
                 if (requestVO != null) {
                     switch (deviceCategorySub) {
@@ -201,11 +202,11 @@ public class WebReceiver extends WebClient {
     }
 
     private void requestAirConditioner(ControlRequestVO requestVO) {
-        //ESS 유형 별 공조장치 제어(01: 이동형, 02: 고정형)
+        //ESS 유형 별 공조장치 제어(01: 고정형, 02: 이동형)
         if (ESS_TYPE.equals("01")) {
-
         } else if (ESS_TYPE.equals("02")) {
-
+            IOBoardClient ioBoardClient = new IOBoardClient();
+            ioBoardClient.setControlRequest(requestVO);
         }
     }
 

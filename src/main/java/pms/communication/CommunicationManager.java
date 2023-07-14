@@ -2,6 +2,8 @@ package pms.communication;
 
 import pms.common.util.ResourceUtil;
 import pms.communication.device.bms.BMSClient;
+//import pms.communication.device.mobile.ioboard.IOBoardClient;
+import pms.communication.device.mobile.ioboard.IOBoardClient;
 import pms.communication.device.pcs.PCSClient;
 import pms.communication.web.WebClient;
 import pms.system.PMSCode;
@@ -28,6 +30,7 @@ public class CommunicationManager {
         String essType = PmsVO.ess.getEssType();
 
         executeBMS();
+        executeIOBoard();
 
         if (essType.equals("01")) {
             executePCS();
@@ -53,7 +56,8 @@ public class CommunicationManager {
         pcsClient.execute();
     }
 
-    private void executeSensor() {
-
+    private void executeIOBoard() {
+        IOBoardClient ioBoardClient = new IOBoardClient();
+        ioBoardClient.execute();
     }
 }

@@ -9,6 +9,7 @@ public class AirConditionerVO {
     private String operationStatus;
     private String operationModeStatus;
     private String indoorTemperature;
-    private String waringFlag;
+    private String setTemperature;
+    private String warningFlag;
     private String faultFlag;
 }

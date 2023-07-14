@@ -183,10 +183,8 @@ public class ControlUtil {
         responseVO.setResult(result);
         responseVO.setRequestVO(requestVO);
 
-        if (!requestVO.getType().equals("02")) {
-            ControlHistoryVO controlHistoryVO = setControlHistoryVO(responseVO);
-            responseVO.setHistoryVO(controlHistoryVO);
-        }
+        ControlHistoryVO controlHistoryVO = setControlHistoryVO(responseVO);
+        responseVO.setHistoryVO(controlHistoryVO);
 
         return responseVO;
     }
