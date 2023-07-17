@@ -1,6 +1,5 @@
 package pms.database;
 
-import com.google.gson.JsonObject;
 import pms.common.util.FieldUtil;
 
 import java.lang.reflect.Field;

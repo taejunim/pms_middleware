@@ -148,6 +148,7 @@ public class PMSManager {
                     setPCS(category, categorySub);
                     break;
                 case "03":  //이동형 PCS
+                    setConverters(category, categorySub);
                     break;
                 case "04":  //센서
                     setSensors(category, categorySub);
@@ -222,6 +223,33 @@ public class PMSManager {
      */
     private void setPCS(String category, String categorySub) {
         PmsVO.pcs = deviceQuery.getDevice(category, categorySub);
+    }
+
+    /**
+     * 컨버터 정보 설정 - 이동형 PCS
+     *
+     * @param category    장비 분류 코드
+     * @param categorySub 장비 하위 분류 코드
+     */
+    private void setConverters(String category, String categorySub) {
+        DeviceVO converter = deviceQuery.getDevice(category, categorySub);
+        PmsVO.converters.put(categorySub, converter);
+
+        String converterCode = converter.getDeviceCode();
+        setInverters(converterCode);
+    }
+
+    /**
+     * 인터버 정보 설정 - 이동형 PCS
+     * <p>
+     * 컨버터 하위 구성
+     *
+     * @param converterCode 컨버터 코드
+     */
+    private void setInverters(String converterCode) {
+        List<DeviceVO.ComponentVO> inverters = deviceQuery.getComponentList(converterCode);
+
+        PmsVO.inverters.put(converterCode, inverters);
     }
 
     /**

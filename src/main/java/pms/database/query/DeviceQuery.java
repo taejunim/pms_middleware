@@ -2,10 +2,7 @@ package pms.database.query;
 
 import pms.database.QueryUtil;
 import pms.database.SqlSession;
-import pms.vo.device.AirConditionerVO;
-import pms.vo.device.BmsVO;
-import pms.vo.device.PcsVO;
-import pms.vo.device.SensorVO;
+import pms.vo.device.*;
 import pms.vo.system.DeviceVO;
 
 import java.util.ArrayList;
@@ -196,6 +193,76 @@ public class DeviceQuery {
         );
 
         List<Object> voList = new ArrayList<>(airConditionerData);
+
+        String values = QueryUtil.createInsertValues(voList);
+        sql.append(values);
+
+        return sqlSession.insert(sql.toString());
+    }
+
+    public int insertACConverterData(ConverterVO.ACConverterVO acConverterVO) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO RAW_CONVERTER_AC " +
+                "(CONVERTER_CODE, REG_DATE, OPERATION_STATUS, TOTAL_DC_POWER, TOTAL_CURRENT, " +
+                "CONVERT_DC_POWER, DC_CURRENT, INTERNAL_TEMP, WARNING_FLAG, FAULT_FLAG) " +
+                "VALUES "
+        );
+
+        String values = QueryUtil.createInsertValue(acConverterVO);
+        sql.append(values);
+
+        return sqlSession.insert(sql.toString());
+    }
+
+    public int insertACInverterData(List<ConverterVO.ACInverterVO> acInverters) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO RAW_CONVERTER_AC_DETAIL " +
+                "(CONVERTER_CODE, REG_DATE, INVERTER_NO, MODE_STATUS, INVERTER_STATUS, " +
+                "POWER, TOTAL_CURRENT, OUTPUT_VOLTAGE, OUTPUT_FREQUENCY, " +
+                "GRID_VOLTAGE, GRID_FREQUENCY, GRID_PHASE_DIFFERENCE, " +
+                "POWER_FACTOR, AC_CURRENT, DC_VOLTAGE, DC_OFFSET, ACTIVE_CURRENT, " +
+                "ACTIVE_CURRENT_CONTRAST, REACTIVE_CURRENT_CONTRAST, " +
+                "STACK_TEMP, INDUCTOR1_TEMP, INDUCTOR2_TEMP, CAPACITOR_TEMP, " +
+                "WARNING_ID, FAULT_ID, WARNING_FLAG, FAULT_FLAG) " +
+                "VALUES "
+        );
+
+        List<Object> voList = new ArrayList<>(acInverters);
+
+        String values = QueryUtil.createInsertValues(voList);
+        sql.append(values);
+
+        return sqlSession.insert(sql.toString());
+    }
+
+    public int insertDCConverterData(ConverterVO.DCConverterVO dcConverterVO) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO RAW_CONVERTER_AC " +
+                "(CONVERTER_CODE, REG_DATE, OPERATION_STATUS, " +
+                "TOTAL_DC_POWER, TOTAL_CURRENT, " +
+                "CONVERT_DC_POWER, DC_CURRENT, INTERNAL_TEMP, " +
+                "WARNING_FLAG, FAULT_FLAG) " +
+                "VALUES "
+        );
+
+        String values = QueryUtil.createInsertValue(dcConverterVO);
+        sql.append(values);
+
+        return sqlSession.insert(sql.toString());
+    }
+
+    public int insertDCInverterData(List<ConverterVO.DCInverterVO> dcInverters) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO RAW_CONVERTER_AC_DETAIL " +
+                "(CONVERTER_CODE, REG_DATE, INVERTER_NO, MODE_STATUS, INVERTER_STATUS, " +
+                "POWER, CURRENT, VOLTAGE, DC_POWER, DC_CURRENT, " +
+                "ACTIVE_CURRENT_CONTRAST, REF_ACTIVE_CURRENT_PERCENTAGE, " +
+                "STACK_TEMP, INDUCTOR_TEMP, CAPACITOR_TEMP, " +
+                "WARNING_ID, FAULT_ID, WARNING_FLAG, FAULT_FLAG) " +
+                "VALUES "
+        );
+
+        List<Object> voList = new ArrayList<>(dcInverters);
 
         String values = QueryUtil.createInsertValues(voList);
         sql.append(values);

@@ -1,16 +1,13 @@
 package pms;
 
 import pms.communication.CommunicationManager;
-import pms.communication.external.smarthub.EVChargerClient;
+import pms.communication.external.smarthub.EVChargerClientNew;
 import pms.scheduler.CommonScheduler;
 import pms.system.PMSManager;
 import pms.system.backup.BackupClient;
 import pms.system.ess.ESSController;
 import pms.system.ess.ESSScheduleManager;
-import pms.vo.device.external.EVChargerVO;
 import pms.vo.system.PmsVO;
-
-import java.util.List;
 
 public class Main {
     /**
@@ -20,26 +17,30 @@ public class Main {
      */
     public static void main(String[] args) {
         new PMSManager().initSystem();
+        new CommonScheduler().startScheduler();
+        new BackupClient().connectSession();
 
-        System.out.println(PmsVO.sensors);
-        System.out.println(PmsVO.airConditioners);
+        String essType = PmsVO.ess.getEssType();
 
-        //new ESSController().setConfig();
-        //new ESSScheduleManager().checkSchedule();
+        //ESS 유형에 따른 기능 실행
+        if (essType.equals("01")) {
+            new ESSController().setConfig();
+            new ESSScheduleManager().checkSchedule();
+        } else if (essType.equals("02")) {
 
-        //new CommonScheduler().startScheduler();
+        }
 
-        //new BackupClient().connectSession();
+        executeCommunication();
 
-        //executeCommunication();
-
-        /*EVChargerClient evChargerClient = new EVChargerClient();
+        /*EVChargerClientNew evChargerClient = new EVChargerClientNew();
         evChargerClient.request();
-
         List<EVChargerVO> chargers = evChargerClient.getEVChargers("ess-charge");
         System.out.println(chargers);*/
     }
 
+    /**
+     * 통신 실행
+     */
     private static void executeCommunication() {
         CommunicationManager communication = new CommunicationManager();
 

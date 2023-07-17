@@ -3,7 +3,6 @@ package pms.scheduler.device.bms;
 import org.quartz.*;
 import pms.communication.device.bms.BMSClient;
 import pms.communication.web.WebSender;
-import pms.system.ess.ESSController;
 import pms.system.ess.ESSManager;
 import pms.vo.device.BmsVO;
 import pms.vo.device.control.ControlResponseVO;
@@ -31,7 +30,6 @@ public class BMSJob implements Job {
     }
 
     private void executeCommunication(String rackCode) {
-        //System.out.println("Connected : " + bmsClient.isConnected(rackCode));
         if (bmsClient.isConnected(rackCode)) {
             try {
                 if (!bmsClient.isControlRequest(rackCode)) {
@@ -61,8 +59,8 @@ public class BMSJob implements Job {
                     }
                 }
 
-                //e.printStackTrace();
-                e.getLocalizedMessage();
+                e.printStackTrace();
+                //e.getLocalizedMessage();
             }
             //System.out.println("Read 5.");
         }
