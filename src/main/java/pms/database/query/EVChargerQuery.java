@@ -13,7 +13,10 @@ public class EVChargerQuery {
     public void insertEVChargerHistory(List<EVChargerVO> evChargers) {
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO HISTORY_CHARGER " +
-                "(REQUEST_DATE, REQUEST_TYPE, CHARGER_ID, STATUS, VOLTAGE, CURRENT, START_DATE, END_DATE, ORIGINAL_JSON) " +
+                "(REQUEST_DATE, REQUEST_TYPE, CHARGER_ID, " +
+                "STATUS, VOLTAGE, CURRENT, " +
+                "READY_DATE, START_DATE, END_DATE, CANCEL_DATE, " +
+                "ORIGINAL_JSON) " +
                 "VALUES "
         );
 

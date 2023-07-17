@@ -12,7 +12,7 @@ public class EnergyQuery {
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO HISTORY_ENERGY " +
                 "(ENERGY_NO, DEVICE_CODE, OPERATION_MODE_TYPE, OPERATION_TYPE, OPERATION_HISTORY_TYPE, " +
-                "SCHEDULE_OPERATION_FLAG, SCHEDULE_NO, FINAL_ACCUMULATED_ENERGY, START_DATE, END_DATE) " +
+                "SCHEDULE_OPERATION_FLAG, SCHEDULE_NO, FINAL_ACCUMULATED_ENERGY, START_DATE, END_DATE, UPDATED_AT) " +
                 "VALUES "
         );
 
@@ -20,6 +20,18 @@ public class EnergyQuery {
         sql.append(values);
 
         return sqlSession.insert(sql.toString());
+    }
+
+    public int updateEnergyHistory(EnergyHistoryVO energyHistoryVO) {
+        String sql = "UPDATE HISTORY_ENERGY " +
+                "SET " +
+                "OPERATION_HISTORY_TYPE = '" + energyHistoryVO.getOperationHistoryType() + "', " +
+                "FINAL_ACCUMULATED_ENERGY = " + energyHistoryVO.getFinalAccumulatedEnergy() + ", " +
+                "END_DATE = '" + energyHistoryVO.getEndDate() + "', " +
+                "UPDATED_AT = '" + energyHistoryVO.getUpdatedAt()  + "' " +
+                "WHERE ENERGY_NO = '" + energyHistoryVO.getEnergyNo() + "'";
+
+        return sqlSession.update(sql);
     }
 
     public int insertEnergyDetailHistory(EnergyDetailHistoryVO energyDetailHistoryVO) {
@@ -33,16 +45,5 @@ public class EnergyQuery {
                 energyDetailHistoryVO.getAccumulatedEnergy() + ")";
 
         return sqlSession.insert(sql);
-    }
-
-    public int updateEnergyHistory(EnergyHistoryVO energyHistoryVO) {
-        String sql = "UPDATE HISTORY_ENERGY " +
-                "SET " +
-                "OPERATION_HISTORY_TYPE = '" + energyHistoryVO.getOperationHistoryType() + "', " +
-                "FINAL_ACCUMULATED_ENERGY = " + energyHistoryVO.getFinalAccumulatedEnergy() + ", " +
-                "END_DATE = '" + energyHistoryVO.getEndDate() + "' " +
-                "WHERE ENERGY_NO = '" + energyHistoryVO.getEnergyNo() + "'";
-
-        return sqlSession.update(sql);
     }
 }
