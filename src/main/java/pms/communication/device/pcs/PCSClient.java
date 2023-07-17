@@ -32,7 +32,7 @@ public class PCSClient {
     private static int heartbeatInterval = 3;
     private static List<PcsVO.RequestItem> requestItems = new ArrayList<>();
     private static List<String> previousErrorCodes = new ArrayList<>();
-    private static List<String> previousCommonErrorCodes = new ArrayList<>();
+    private static final List<String> previousCommonErrorCodes = new ArrayList<>();
     private static int previousRegDate = 0;
     private static ControlRequestVO controlRequest = null;
 
@@ -49,7 +49,7 @@ public class PCSClient {
             e.printStackTrace();
         } finally {
             if (isConnected()) {
-                controlByStatus("0401", "0200010200", null);
+                controlByStatus("0401", "0200010200", null);    //PCS 초기화
             }
 
             requestItems = new PCSReadItem().getRequestItems();
@@ -61,16 +61,16 @@ public class PCSClient {
         return pcsInfo;
     }
 
+    public boolean isConnected() {
+        return connection.isConnected();
+    }
+
     public void connect() throws Exception {
         connection.connect();
     }
 
     public void disconnect() {
         connection.disconnect();
-    }
-
-    public boolean isConnected() {
-        return connection.isConnected();
     }
 
     private void setConnection() {
@@ -241,6 +241,7 @@ public class PCSClient {
 
         ControlResponseVO responseVO = pcsWriter.getResponse();
         ControlHistoryVO controlHistoryVO = responseVO.getHistoryVO();
+
         insertControlHistory(controlHistoryVO);
     }
 
@@ -252,10 +253,13 @@ public class PCSClient {
         ControlResponseVO responseVO = pcsWriter.getResponse();
         String requestType = responseVO.getRequestVO().getType();
 
-        if (!requestType.equals("02")) {
+        /*if (!requestType.equals("02")) {
             ControlHistoryVO controlHistoryVO = responseVO.getHistoryVO();
             insertControlHistory(controlHistoryVO);
-        }
+        }*/
+
+        ControlHistoryVO controlHistoryVO = responseVO.getHistoryVO();
+        insertControlHistory(controlHistoryVO);
 
         controlRequest = null;
 

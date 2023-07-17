@@ -1,7 +1,10 @@
 package pms.common.util;
 
+import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -48,5 +51,20 @@ public class DateTimeUtil {
         long unixTime = Instant.now().getEpochSecond();
 
         return (int) unixTime;
+    }
+
+    public static Date getCalculatedDate(int field, int amount) {
+        Date currentDate = new Date();
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(currentDate);
+        calendar.add(field, amount);
+
+        Date calculatedDate = new Date(calendar.getTimeInMillis());
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        System.out.println(dateFormat.format(calculatedDate));
+
+        return calculatedDate;
     }
 }

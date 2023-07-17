@@ -65,9 +65,8 @@ public class PCSReader {
             transaction.execute();
 
             return (ReadInputRegistersResponse) transaction.getResponse();
-        } catch (ModbusException e) {
-            //e.printStackTrace();
-            e.getLocalizedMessage();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return null;

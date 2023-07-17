@@ -11,7 +11,9 @@ public class EVChargerVO {
     private String status;
     private float voltage;
     private float current;
+    private String readyDate;
     private String startDate;
     private String endDate;
+    private String cancelDate;
     private String originalJson;
 }

@@ -4,7 +4,7 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import pms.communication.device.pcs.PCSClient;
-import pms.communication.external.smarthub.EVChargerClient;
+import pms.communication.external.smarthub.EVChargerClientNew;
 import pms.communication.web.WebSender;
 import pms.system.ess.ESSController;
 import pms.system.ess.ESSManager;
@@ -47,11 +47,6 @@ public class PCSJob implements Job {
                 pcsClient.disconnect();
 
                 e.printStackTrace();
-                /*try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
-                }*/
             }
         }
     }
@@ -85,6 +80,8 @@ public class PCSJob implements Job {
         ControlResponseVO responseVO = pcsClient.control();
         ControlRequestVO requestVO = responseVO.getRequestVO();
 
+        System.out.println("제어 실행 : " + requestVO);
+
         String requestType = requestVO.getType();
         String requestDetailType = requestVO.getDetailType();
         String controlCode = requestVO.getControlCode();
@@ -101,7 +98,8 @@ public class PCSJob implements Job {
             if (!requestDetailType.equals("0500")) {
                 if (responseVO.getResult() == 1) {
                     System.out.println("[EV 충전기] 제어 요청 완료, 요청 제거");
-                    new EVChargerClient().removeEVChargerRequest();
+                    //new EVChargerClient().removeEVChargerRequest();
+                    new EVChargerClientNew().resetControlRequest();
                 }
             } else {
                 System.out.println("[EV 충전기] PCS 운전 제어 요청");

@@ -17,7 +17,8 @@ public class BMSScheduler {
             SchedulerFactory schedulerFactory = new StdSchedulerFactory();
             scheduler = schedulerFactory.getScheduler();
         } catch (SchedulerException e) {
-            e.getLocalizedMessage();
+            //e.getLocalizedMessage();
+            e.printStackTrace();
         }
     }
 
@@ -30,10 +31,10 @@ public class BMSScheduler {
     public void execute(String rackCode) throws SchedulerException {
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("rackCode", rackCode);
-        jobDataMap.put("jobGroup", "Rack-" + rackCode);
-        jobDataMap.put("jobName", "Rack-" + rackCode + "-Job");
-        jobDataMap.put("triggerGroup", "Rack-" + rackCode);
-        jobDataMap.put("triggerName", "Rack-" + rackCode + "-Trigger");
+        jobDataMap.put("jobGroup", "rack-" + rackCode);
+        jobDataMap.put("jobName", "rack-" + rackCode + "-job");
+        jobDataMap.put("triggerGroup", "rack-" + rackCode);
+        jobDataMap.put("triggerName", "rack-" + rackCode + "-trigger");
 
         JobDetail jobDetail = CommonScheduler.buildJobDetail(BMSJob.class, jobDataMap);
         scheduler.scheduleJob(jobDetail, CommonScheduler.buildTrigger(3, jobDataMap));

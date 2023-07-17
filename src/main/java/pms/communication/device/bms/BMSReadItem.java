@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class BMSReadItem {
-    private List<DeviceVO.ComponentVO> modules;
+    private final List<DeviceVO.ComponentVO> modules;
     private final Map<String, List<BmsVO.RequestItem>> requestItemsMap = new HashMap<>();
 
     public BMSReadItem(String rackCode) {

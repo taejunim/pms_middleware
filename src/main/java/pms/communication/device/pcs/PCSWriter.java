@@ -85,8 +85,8 @@ public class PCSWriter {
 
             return (WriteSingleRegisterResponse) transaction.getResponse();
         } catch (ModbusException e) {
-            //e.printStackTrace();
-            e.getLocalizedMessage();
+            e.printStackTrace();
+            //e.getLocalizedMessage();
 
             return null;
         }

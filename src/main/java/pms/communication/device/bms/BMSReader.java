@@ -61,19 +61,26 @@ public class BMSReader {
             if (readResponse != null) {
                 setResponseItems(group, requestItems, readResponse);
             }
+
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         if (!responseItemsMap.isEmpty()) {
             setReadData();
         } else {
             setReadDataByError(PMSCode.getDeviceStatus("09"), "01008");  //수신 오류
+            //System.out.println("Response Null.");
         }
     }
 
     public BmsVO getReadData() {
         BmsVO bmsVO = new BmsVO();
         bmsVO.setRack(rackVO);
-        bmsVO.setModules(new ArrayList<>(moduleDataMap.values()));  //Module 데이터 Map -> ArrayList 변
+        bmsVO.setModules(new ArrayList<>(moduleDataMap.values()));  //Module 데이터 Map -> ArrayList 변환
 
         if (rackVO.getFaultFlag().equals("Y") || rackVO.getWarningFlag().equals("Y")) {
             bmsVO.setError(true);
@@ -160,7 +167,7 @@ public class BMSReader {
                 reference = register;
             }
 
-            //Word 개수가 최대 125 이상인 경우 Request 생성 중지 - BMSReadRegister.java 참고
+            //Word 개수가 최대 125 이상인 경우 Request 생성 중지 - BMSReadItem.java 참고
             if (wordCount >= 125) {
                 if (wordCount > 125) {
                     System.out.println("[Warning]Read items count exceeded 125. Excess items are excluded.");

@@ -18,7 +18,7 @@ import static pms.system.PMSManager.applicationProperties;
 
 public class BackupFile {
     private final String SEPARATOR = File.separator; //파일 경로 구분자 - OS 구분없이 사용 가능
-    private final String homeDirectory = applicationProperties.getProperty("file.path") + SEPARATOR + "PMS" + PmsVO.ess.getEssCode();
+    private final String homeDirectory = applicationProperties.getProperty("file.path") + SEPARATOR + PmsVO.ess.getEssCode();
     //private final String homeDirectory = System.getProperty("user.home") + SEPARATOR + "PMS" + SEPARATOR + PmsVO.ess.getEssCode(); //사용자 홈 디렉토리
     private final String backupDirectory = applicationProperties.getProperty("file.path.backup");
     private final String deviceDirectory = applicationProperties.getProperty("file.path.backup.device");

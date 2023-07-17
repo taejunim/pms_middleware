@@ -3,6 +3,7 @@ package pms.communication.device.bms;
 import com.ghgande.j2mod.modbus.io.ModbusRTUTCPTransport;
 import com.ghgande.j2mod.modbus.net.TCPMasterConnection;
 import org.quartz.SchedulerException;
+import pms.database.query.ControlQuery;
 import pms.database.query.DeviceErrorQuery;
 import pms.database.query.DeviceQuery;
 import pms.scheduler.device.bms.BMSScheduler;
@@ -14,6 +15,7 @@ import pms.vo.device.control.ControlResponseVO;
 import pms.vo.device.error.ComponentErrorVO;
 import pms.vo.device.error.DeviceErrorVO;
 import pms.vo.device.error.DeviceErrorsVO;
+import pms.vo.history.ControlHistoryVO;
 import pms.vo.system.DeviceVO;
 
 import java.net.InetAddress;
@@ -32,7 +34,7 @@ public class BMSClient {
     private final BMSScheduler bmsScheduler = new BMSScheduler();   //BMS 스케줄러
     private static final Map<String, TCPMasterConnection> connections = new HashMap<>();   //BMS 통신 연결 정보 목록
     private static final Map<String, DeviceVO> rackInfoMap = new HashMap<>();   //Rack 장비 정보
-    public static Map<String, List<BmsVO.RequestItem>> requestItemsMap = new HashMap<>();   //수신 요청 아이템 Map
+    private static Map<String, List<BmsVO.RequestItem>> requestItemsMap = new HashMap<>();   //수신 요청 아이템 Map
     private static final Map<String, List<String>> previousErrorCodesMap = new HashMap<>(); //Rack 별 이전 오류 코드 목록 Map
     private static final Map<String, List<String>> previousCommonErrorCodesMap = new HashMap<>();
     private static final Map<String, Integer> previousRegDateMap = new HashMap<>(); //Rack 별 데이터 등록 일시 Map
@@ -371,9 +373,7 @@ public class BMSClient {
     public ControlResponseVO control(String rackCode) {
         int rackNo = getRackInfo(rackCode).getDeviceNo();   //Rack 번호 - 통신 Unit ID
         //ControlRequestVO requestVO = getControlRequest(rackCode);   //제어 요청 정보
-
         //RequestVO requestVONew = ControlUtil.setControlRequestVO()
-
         ControlRequestVO requestVO = controlRequestMap.get(rackCode);
 
         BMSWriter bmsWriter = new BMSWriter();
@@ -381,12 +381,24 @@ public class BMSClient {
         bmsWriter.request();    //제어 요청
 
         //ControlResponseVO responseVO = bmsWriter.getResponse(); //제어 응답 정보
-
         ControlResponseVO responseVO = bmsWriter.getResponse();
+
+        //수정 필요
+        ControlHistoryVO controlHistoryVO = responseVO.getHistoryVO();
+        insertControlHistory(controlHistoryVO);
 
         controlRequestMap.remove(rackCode); //제어 완료 후, 제어 요청 정보 제거
 
         return responseVO;
+    }
+
+    private void insertControlHistory(ControlHistoryVO controlHistoryVO) {
+        ControlQuery controlQuery = new ControlQuery();
+        int result = controlQuery.insertControlHistory(controlHistoryVO);
+
+        if (result > 0) {
+            new BackupFile().backupData("control", null, controlHistoryVO);
+        }
     }
 
     /**

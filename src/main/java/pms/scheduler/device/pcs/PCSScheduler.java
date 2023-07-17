@@ -18,10 +18,10 @@ public class PCSScheduler {
 
     public void execute() throws SchedulerException {
         JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("jobGroup", "PCS");
-        jobDataMap.put("jobName", "PCS-Job");
-        jobDataMap.put("triggerGroup", "PCS");
-        jobDataMap.put("triggerName", "PCS-Trigger");
+        jobDataMap.put("jobGroup", "pcs");
+        jobDataMap.put("jobName", "pcs-job");
+        jobDataMap.put("triggerGroup", "pcs");
+        jobDataMap.put("triggerName", "pcs-trigger");
 
         JobDetail jobDetail = CommonScheduler.buildJobDetail(PCSJob.class, jobDataMap);
         scheduler.scheduleJob(jobDetail, CommonScheduler.buildTrigger(1, jobDataMap));
