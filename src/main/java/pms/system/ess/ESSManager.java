@@ -15,16 +15,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ESSManager {
-    private static final Map<String, String> rackStatusMap = new HashMap<>();
-    private static final Map<String, Float> socMap = new HashMap<>();
-    private static final Map<String, Float> limitPowerMap = new HashMap<>();
-    private static String operationType = null;
+    private final String essType = PmsVO.ess.getEssType();
+    private static final Map<String, String> rackStatusMap = new HashMap<>();   //Rack 별 상태 Map
+    private static final Map<String, Float> socMap = new HashMap<>();   //Rack 별 SoC Map
+    private static final Map<String, Float> limitPowerMap = new HashMap<>();    //Rack 별 제한 전력 Map
+    private static String operationType = null; //운영 구분
     private static String operationMode = "0";  //운전 모드
     private static String energyNo = null;  //전력량 이력 번호
     private static float accumulatedEnergy = 0; //누적 전력량
     private static float referenceEnergy = 0;   //조정 기준 전력량 - 현재 PCS 누적 전력량이 초기화되지 않아 임시 방안
-    private String totalCharge = PmsVO.ess.getTotalCharge();
-    private String totalDischarge = PmsVO.ess.getTotalDischarge();
+    private String totalCharge = PmsVO.ess.getTotalCharge();    //ESS 총 충전 누적 전력량
+    private String totalDischarge = PmsVO.ess.getTotalDischarge();  //ESS 총 방전 누적 전력량
 
     public void saveRackStatus(BmsVO.RackVO rackVO) {
         String rackCode = rackVO.getRackCode();
@@ -34,13 +35,21 @@ public class ESSManager {
     }
 
     public boolean isRackOperation() {
-        for (String operationStatus : rackStatusMap.values()) {
-            if (!operationStatus.equals("08")) {
-                return false;
+        boolean isOperate = true;
+
+        if (rackStatusMap.size() > 0) {
+            for (String operationStatus : rackStatusMap.values()) {
+                //System.out.println("Rack 상태 : " + operationStatus);
+                if (!operationStatus.equals("08")) {
+                    isOperate = false;
+                    break;
+                }
             }
+        } else {
+            isOperate = false;
         }
 
-        return true;
+        return isOperate;
     }
 
     public void saveSoC(BmsVO.RackVO rackVO) {
@@ -84,14 +93,41 @@ public class ESSManager {
         int rackCount = limitPowerMap.size();
 
         for (float limitPower : limitPowerMap.values()) {
+            System.out.println("limitPower : " + limitPower);
             sumLimitPower += limitPower;
         }
 
-        int limitPower = (int) (sumLimitPower / (1000 * rackCount));
-        int setLimitPower = PMSCode.getControlVO("0200010205").getControlValue();
+        System.out.println("sumLimitPower : " + sumLimitPower);
 
-        return Math.min(limitPower, setLimitPower);
+        int limitPower = (int) (sumLimitPower / (1000 * rackCount));    //제한 전력 계산 값
+        int setLimitPower = setLimitPower();
+
+        System.out.println("limitPower : " + limitPower);
+        System.out.println("setLimitPower : " + setLimitPower);
+        System.out.println("Math.min : " + Math.min(limitPower, setLimitPower));
+
+        return Math.min(limitPower, setLimitPower); //설정된 제한 전력 값과 비교하여 낮은 전력 값을 전달
         //return (int) (sumLimitPower / (1000 * rackCount));
+    }
+
+    private int setLimitPower() {
+        int setLimitPower = 0;
+
+        if (essType.equals("01")) {
+            setLimitPower = PMSCode.getControlVO("0200010205").getControlValue();   //설정된 충전 제한 전력 값
+            //호출 방식 변경해야함
+            /*if (operationMode.equals("1")) {
+                setLimitPower = PMSCode.getControlVO("0200010205").getControlValue();   //설정된 제한 전력 값
+            } else if (operationMode.equals("2")) {
+                setLimitPower = PMSCode.getControlVO("0200010206").getControlValue();   //설정된 제한 전력 값
+            }*/
+        } else if (essType.equals("02")) {
+            if (operationMode.equals("1")) {
+                int setCurrent = PMSCode.getControlVO("0301010305").getControlValue();
+            }
+        }
+
+        return setLimitPower;
     }
 
     public float getReferenceEnergy() {
@@ -198,6 +234,7 @@ public class ESSManager {
     private void beginEnergyHistory(PcsVO pcsVO, String currentOperationMode) {
         if (currentOperationMode.equals("1") || currentOperationMode.equals("2")) {
             EnergyHistoryVO energyHistoryVO = setEnergyHistoryVO(pcsVO.getPcsCode(), pcsVO.getOperationModeStatus());
+            //System.out.println(energyHistoryVO);
             int result = insertEnergyHistory(energyHistoryVO);
 
             if (result > 0) {
@@ -233,6 +270,7 @@ public class ESSManager {
     private EnergyHistoryVO setEnergyHistoryVO(String deviceCode, String operationModeType) {
         int startTime = DateTimeUtil.getUnixTimestamp();
         energyNo = operationModeType + deviceCode + startTime;
+        String updateDate = DateTimeUtil.getCurrentTimestamp();
 
         EnergyHistoryVO energyHistoryVO = new EnergyHistoryVO();
         energyHistoryVO.setEnergyNo(energyNo);
@@ -242,6 +280,7 @@ public class ESSManager {
         energyHistoryVO.setOperationHistoryType("0");
         energyHistoryVO.setSchedulerOperationFlag("N");
         energyHistoryVO.setStartDate(startTime);
+        energyHistoryVO.setUpdatedAt(updateDate);
 
         return energyHistoryVO;
     }
