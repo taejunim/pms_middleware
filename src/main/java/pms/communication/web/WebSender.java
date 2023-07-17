@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import pms.system.ess.ESSManager;
-import pms.vo.device.AirConditionerVO;
-import pms.vo.device.BmsVO;
-import pms.vo.device.PcsVO;
-import pms.vo.device.SensorVO;
+import pms.vo.device.*;
 import pms.vo.system.DeviceVO;
 
 import java.util.List;
@@ -33,6 +30,7 @@ public class WebSender extends WebClient {
         JsonObject jsonObject = setHeaderJson(deviceVO);
         JsonObject bodyJson = new JsonObject();
         String category = deviceVO.getDeviceCategory();
+        String categorySub = deviceVO.getDeviceCategorySub();
 
         switch (category) {
             case "01":
@@ -41,6 +39,16 @@ public class WebSender extends WebClient {
             case "02":
                 bodyJson = setPCSDataJson(deviceData, errors);
                 break;
+            case "03":
+                switch (categorySub) {
+                    case "0301":
+                        bodyJson = setACConverterDataJson(deviceData, errors);
+                        break;
+                    case "0302":
+                        bodyJson = setDCConverterDataJson(deviceData, errors);
+                        break;
+                }
+                break;
             case "04":
                 bodyJson = setSensorDataJson(deviceVO.getDeviceRoom(), deviceData, errors);
                 break;
@@ -48,6 +56,7 @@ public class WebSender extends WebClient {
                 bodyJson = setAirConditionerDataJson(deviceVO.getDeviceRoom(), deviceData, errors);
                 break;
         }
+
         jsonObject.add("data", bodyJson);
         String json = getJson(jsonObject);
 
@@ -245,6 +254,125 @@ public class WebSender extends WebClient {
         String errorFlag = setErrorFlag(pcsVO.getWarningFlag(), pcsVO.getFaultFlag());
 
         return addErrorJson(bodyJson, pcsVO.getWarningFlag(), pcsVO.getFaultFlag(), errorFlag, errors);
+    }
+
+    private JsonObject setACConverterDataJson(Object deviceData, List<String> errors) {
+        ConverterVO converterVO = (ConverterVO) deviceData;
+        ConverterVO.ACConverterVO acConverterVO = converterVO.getAcConverter();
+
+        JsonObject bodyJson = new JsonObject();
+        bodyJson.addProperty("operationStatus", acConverterVO.getOperationStatus());
+        bodyJson.addProperty("operationModeStatus", acConverterVO.getOperationModeStatus());
+        bodyJson.addProperty("setOperationMode", acConverterVO.getSetOperationMode());
+        bodyJson.addProperty("setCurrent", acConverterVO.getSetCurrent());
+        bodyJson.addProperty("totalActiveCurrent", acConverterVO.getTotalActiveCurrent());
+        bodyJson.addProperty("totalVoltage", acConverterVO.getTotalVoltage());
+        bodyJson.addProperty("totalPower", acConverterVO.getTotalPower());
+        bodyJson.addProperty("internalTemp", acConverterVO.getInternalTemp());
+        bodyJson.addProperty("transformerTemp", acConverterVO.getTransformerTemp());
+
+        JsonObject leftInverterJson = new JsonObject();
+        JsonObject rightInverterJson = new JsonObject();
+
+        for (ConverterVO.ACInverterVO inverterVO : converterVO.getAcInverters()) {
+            if (inverterVO.getInverterNo() == 1) {
+                setACInverterDataJson(leftInverterJson, inverterVO);
+            } else if (inverterVO.getInverterNo() == 2) {
+                setACInverterDataJson(rightInverterJson, inverterVO);
+            }
+        }
+
+        bodyJson.add("leftInverter", leftInverterJson);
+        bodyJson.add("rightInverter", rightInverterJson);
+
+        ESSManager essManager = new ESSManager();
+        JsonObject totalAccumulatedJson = new JsonObject();
+        totalAccumulatedJson.addProperty("charge", essManager.getTotalCharge());   //총 누적 전력량 - 총 누적 충전량
+        totalAccumulatedJson.addProperty("discharge", essManager.getTotalDischarge());    //총 누적 전력량 - 총 누적 방전량
+
+        JsonObject energyStatusJson = new JsonObject();
+        energyStatusJson.add("totalAccumulated", totalAccumulatedJson); //전력량 현황 - 총 누적 전력량
+        energyStatusJson.addProperty("currentAccumulated", String.format("%.1f", (float) 10));   //전력량 현황 - 현재 누적 전력량
+        energyStatusJson.addProperty("currentBattery", String.format("%.1f", (float) 100));   //전력량 현황 - 현재 누적 전력량
+
+        bodyJson.add("energyStatus", energyStatusJson);   //전력량 현황
+
+        String errorFlag = setErrorFlag(acConverterVO.getWarningFlag(), acConverterVO.getFaultFlag());
+
+        return addErrorJson(bodyJson, acConverterVO.getWarningFlag(), acConverterVO.getFaultFlag(), errorFlag, errors);
+    }
+
+    private void setACInverterDataJson(JsonObject inverterJson, ConverterVO.ACInverterVO inverterVO) {
+        inverterJson.addProperty("modeStatus", inverterVO.getModeStatus());
+        inverterJson.addProperty("inverterStatus", inverterVO.getInverterStatus());
+        inverterJson.addProperty("power", inverterVO.getPower());
+        inverterJson.addProperty("totalCurrent", inverterVO.getTotalCurrent());
+        inverterJson.addProperty("outputVoltage", inverterVO.getOutputVoltage());
+        inverterJson.addProperty("outputFrequency", inverterVO.getOutputFrequency());
+        inverterJson.addProperty("dcVoltage", inverterVO.getDcVoltage());
+        inverterJson.addProperty("dcOffset", inverterVO.getDcOffset());
+        inverterJson.addProperty("activeCurrent", inverterVO.getActiveCurrent());
+        inverterJson.addProperty("activeCurrentContrast", inverterVO.getActiveCurrentContrast());
+        inverterJson.addProperty("reactiveCurrentContrast", inverterVO.getReactiveCurrentContrast());
+        inverterJson.addProperty("powerFactor", inverterVO.getPowerFactor());
+        inverterJson.addProperty("acCurrent", inverterVO.getAcCurrent());
+        inverterJson.addProperty("gridVoltage", inverterVO.getGridVoltage());
+        inverterJson.addProperty("gridFrequency", inverterVO.getGridFrequency());
+        inverterJson.addProperty("gridPhaseDifference", inverterVO.getGridPhaseDifference());
+        inverterJson.addProperty("stackTemp", inverterVO.getStackTemp());
+        inverterJson.addProperty("inductor1Temp", inverterVO.getInductor1Temp());
+        inverterJson.addProperty("inductor2Temp", inverterVO.getInductor2Temp());
+        inverterJson.addProperty("capacitorTemp", inverterVO.getCapacitorTemp());
+    }
+
+    private JsonObject setDCConverterDataJson(Object deviceData, List<String> errors) {
+        ConverterVO converterVO = (ConverterVO) deviceData;
+        ConverterVO.DCConverterVO dcConverterVO = converterVO.getDcConverter();
+
+        JsonObject bodyJson = new JsonObject();
+        bodyJson.addProperty("operationStatus", dcConverterVO.getOperationStatus());
+        bodyJson.addProperty("totalDcPower", dcConverterVO.getTotalDcPower());
+        bodyJson.addProperty("totalCurrent", dcConverterVO.getTotalCurrent());
+        bodyJson.addProperty("convertDcPower", dcConverterVO.getConvertDcPower());
+        bodyJson.addProperty("dcCurrent", dcConverterVO.getDcCurrent());
+        bodyJson.addProperty("internalTemp", dcConverterVO.getInternalTemp());
+
+        JsonObject leftInverterJson = new JsonObject();
+        JsonObject rightInverterJson = new JsonObject();
+
+        for (ConverterVO.DCInverterVO inverterVO : converterVO.getDcInverters()) {
+            if (inverterVO.getInverterNo() == 1) {
+                setDCInverterDataJson(leftInverterJson, inverterVO);
+            } else if (inverterVO.getInverterNo() == 2) {
+                setDCInverterDataJson(rightInverterJson, inverterVO);
+            }
+        }
+
+        bodyJson.add("leftInverter", leftInverterJson);
+        bodyJson.add("rightInverter", rightInverterJson);
+
+        JsonObject energyStatusJson = new JsonObject();
+        energyStatusJson.addProperty("currentAccumulated", String.format("%.1f", (float) 10));   //전력량 현황 - 현재 누적 전력량
+        bodyJson.add("energyStatus", energyStatusJson);   //전력량 현황
+
+        String errorFlag = setErrorFlag(dcConverterVO.getWarningFlag(), dcConverterVO.getFaultFlag());
+
+        return addErrorJson(bodyJson, dcConverterVO.getWarningFlag(), dcConverterVO.getFaultFlag(), errorFlag, errors);
+    }
+
+    private void setDCInverterDataJson(JsonObject inverterJson, ConverterVO.DCInverterVO inverterVO) {
+        inverterJson.addProperty("modeStatus", inverterVO.getModeStatus());
+        inverterJson.addProperty("inverterStatus", inverterVO.getInverterStatus());
+        inverterJson.addProperty("power", inverterVO.getPower());
+        inverterJson.addProperty("current", inverterVO.getCurrent());
+        inverterJson.addProperty("voltage", inverterVO.getVoltage());
+        inverterJson.addProperty("dcPower", inverterVO.getDcPower());
+        inverterJson.addProperty("dcCurrent", inverterVO.getDcCurrent());
+        inverterJson.addProperty("activeCurrentContrast", inverterVO.getActiveCurrentContrast());
+        inverterJson.addProperty("refActiveCurrentPercentage", inverterVO.getRefActiveCurrentPercentage());
+        inverterJson.addProperty("stackTemp", inverterVO.getStackTemp());
+        inverterJson.addProperty("inductorTemp", inverterVO.getInductorTemp());
+        inverterJson.addProperty("capacitorTemp", inverterVO.getCapacitorTemp());
     }
 
     private JsonObject setSensorDataJson(String roomNum, Object deviceData, List<String> errors) {

@@ -1,7 +1,7 @@
 package pms.system.ess;
 
 import pms.common.util.DateTimeUtil;
-import pms.communication.external.smarthub.EVChargerClient;
+import pms.communication.external.smarthub.EVChargerClientNew;
 import pms.system.PMSCode;
 import pms.vo.device.control.ControlRequestVO;
 import pms.vo.device.control.ControlResponseVO;
@@ -23,6 +23,9 @@ public class ControlUtil {
                 break;
             case "02":
                 address = getPCSControlAddress(controlType);
+                break;
+            case "03":
+                address = getConverterControlAddress(deviceCode, controlType);
                 break;
             case "80":
                 address = getAirConditionerAddress(deviceCode, controlType);
@@ -100,35 +103,117 @@ public class ControlUtil {
         return address;
     }
 
-    public static ControlRequestVO setRemoteControlRequestVO(String remoteId, String type, String deviceCategory, String controlCode) {
+    private static int getConverterControlAddress(String deviceCode, String controlType) {
+        if (deviceCode.equals("030101")) {
+            switch (controlType) {
+                case "0300":    //운전 모드 선택 - 0: 선택 안함
+                case "0301":    //운전 모드 선택 - 1: 충전
+                case "0302":    //운전 모드 선택 - 2: 방전
+                    return 214;
+                case "0303":    //초기화 시작
+                case "0304":    //초기화 종료
+                    return 203;
+                case "0305":    //전류 설정
+                    return 314;
+                case "0307":    //L-Inverter 운전
+                case "0308":    //L-Inverter 정지
+                    return 206;
+                case "0309":    //R-Inverter 운전
+                case "0310":    //R-Inverter 정지
+                case "0306":    //AC/DC 컨버터 비상정지
+                    return 212;
+            }
+        } else if (deviceCode.equals("030201")) {
+            //DC/DC 컨버터 비상정지
+            if (controlType.equals("0311")) {
+                return 206; //주소 불명 - 추후 변경 예정
+            }
+        }
+
+        return 0;
+    }
+
+    private static int setPowerValue(String controlType) {
+        int powerValue = 0;
+
+        if (controlType.equals("0205")) {
+            EVChargerClientNew evChargerClientNew = new EVChargerClientNew();
+            evChargerClientNew.request();   //EV 충전기 API 요청
+
+            List<EVChargerVO> standbyChargers = evChargerClientNew.getEVChargers("ess-charge");    //대기 상태의 충전기 목록 - ESS 충전 가능 여부 확인을 위해 대기 상태인 EV 충전기 목록 호출
+
+            int totalChargerCount = evChargerClientNew.getTotalChargerCount();  //총 EV 충전기 개수
+            int standbyChargerCount = standbyChargers.size();
+
+            if (standbyChargerCount > 0) {
+                if (standbyChargerCount == totalChargerCount) {
+                    powerValue = new ESSManager().calculateLimitPower();
+                    System.out.println("전력 값 : " + powerValue);
+                } else if (standbyChargerCount < totalChargerCount) {
+                    System.out.println("EV 충전기 일부 충전 중 ESS 저전력 충전 가능!");
+                    powerValue = 5;
+                }
+            } else {
+                System.out.println("EV 충전기 모두 충전 중 ESS 충전 불가!");
+            }
+        }
+
+        return powerValue;
+    }
+
+    public static ControlRequestVO setRemoteControlRequestVO(String remoteId, String type, String deviceCategory, String controlCode, String requestControlValue, String controllerId) {
+        System.out.println("제어생성!");
         int requestDate = DateTimeUtil.getUnixTimestamp();
-        DeviceVO.ControlVO controlVO = PMSCode.getControlVO(controlCode); //PmsVO.controlCodes.get(controlCode);
+        DeviceVO.ControlVO controlVO = PMSCode.getControlVO(controlCode);
         String deviceCode = controlVO.getDeviceCode();
         String controlType = controlVO.getControlType();
 
         int address = getAddress(deviceCategory, deviceCode, controlType);
-        int controlValue = controlVO.getControlValue();
+        int controlValue;
 
-        ControlRequestVO requestVO = new ControlRequestVO();
-
-        if (controlType.equals("0205")) {
-            /*EVChargerClient evChargerClient = new EVChargerClient();
-            evChargerClient.request();
-
-            List<EVChargerVO> chargers = evChargerClient.getEVChargers("ess-charge");
-            int totalChargerCount = evChargerClient.getChargerCount();
-
-            if (chargers.size() == totalChargerCount) {
-                controlValue = new ESSManager().calculateLimitPower();
-            } else if (chargers.size() < totalChargerCount) {
-                controlValue = 5;
-                System.out.println("EV 충전기 일부 충전 중 ESS 저전력 충전 가능!");
-            } else if (chargers.size() == 0) {
-                System.out.println("EV 충전기 모두 충전 중 ESS 충전 불가!");
-                return null;
-            }*/
+        if (requestControlValue.isEmpty()) {
+            controlValue = controlVO.getControlValue();
+        } else {
+            controlValue = Integer.parseInt(requestControlValue);
         }
 
+        System.out.println("control Value : " + controlValue);
+
+        //고정형 ESS 전력 값 확인 및 조정
+        if (PmsVO.ess.getEssType().equals("01")) {
+            if (controlType.equals("0205")) {
+                controlValue = setPowerValue(controlType);
+
+                if (controlValue == 0) {
+                    return null;
+                }
+            }
+        }
+
+        /*if (controlType.equals("0205")) {
+            EVChargerClientNew evChargerClientNew = new EVChargerClientNew();
+            evChargerClientNew.request();   //EV 충전기 API 요청
+
+            List<EVChargerVO> standbyChargers = evChargerClientNew.getEVChargers("ess-charge");    //대기 상태의 충전기 목록 - ESS 충전 가능 여부 확인을 위해 대기 상태인 EV 충전기 목록 호출
+
+            int totalChargerCount = evChargerClientNew.getTotalChargerCount();  //총 EV 충전기 개수
+            int standbyChargerCount = standbyChargers.size();
+
+            if (standbyChargerCount > 0) {
+                if (standbyChargerCount == totalChargerCount) {
+                    controlValue = new ESSManager().calculateLimitPower();
+                    System.out.println("전력 값 : " + controlValue);
+                } else if (standbyChargerCount < totalChargerCount) {
+                    controlValue = 5;
+                    System.out.println("EV 충전기 일부 충전 중 ESS 저전력 충전 가능!");
+                }
+            } else {
+                System.out.println("EV 충전기 모두 충전 중 ESS 충전 불가!");
+                return null;
+            }
+        }*/
+
+        ControlRequestVO requestVO = new ControlRequestVO();
         requestVO.setRemoteId(remoteId);
         requestVO.setType(type);
         requestVO.setDate(requestDate);
@@ -137,6 +222,9 @@ public class ControlUtil {
         requestVO.setControlType(controlVO.getControlType());
         requestVO.setControlCode(controlCode);
         requestVO.setControlValue(controlValue);
+        requestVO.setControllerId(controllerId);
+
+        System.out.println("Control Value : " + controlValue);
 
         return requestVO;
     }
@@ -158,6 +246,7 @@ public class ControlUtil {
         requestVO.setControlType(controlType);
         requestVO.setControlCode(controlCode);
         requestVO.setReferenceCode(referenceCode);
+        requestVO.setControllerId("system");
 
         if (controlValue == null) {
             requestVO.setControlValue(controlVO.getControlValue());
@@ -209,7 +298,7 @@ public class ControlUtil {
         controlHistoryVO.setReferenceCode(requestVO.getReferenceCode());
         controlHistoryVO.setControlCompleteFlag(completeFlag);
         controlHistoryVO.setDeviceResponseDate(DateTimeUtil.getUnixTimestamp());
-        controlHistoryVO.setControlRequestId("system");
+        controlHistoryVO.setControlRequestId(requestVO.getControllerId());
 
         return controlHistoryVO;
     }

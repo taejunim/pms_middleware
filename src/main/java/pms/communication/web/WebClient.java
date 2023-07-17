@@ -10,8 +10,8 @@ import static pms.communication.CommunicationManager.websocketProperties;
 
 public class WebClient {
     public static WebSocketClient webSocketClient;
-    private static final String SERVER_URI = websocketProperties.getProperty("uri");
-    public static final String MIDDLEWARE_ID = websocketProperties.getProperty("id");
+    private static final String SERVER_URI = websocketProperties.getProperty("websocket.uri");
+    public static final String MIDDLEWARE_ID = websocketProperties.getProperty("websocket.id");
 
     public String getMiddlewareId() {
         return MIDDLEWARE_ID;
