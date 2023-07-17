@@ -13,5 +13,6 @@ public class ControlRequestVO {
     private String controlType;
     private String controlCode;
     private int controlValue;
-    private String referenceCode;
+    private String controllerId;
+    private String referenceCode;   //참조 코드 - 제어 요청 구분(type) '03: 환경설정(자동)'인 경우
 }
