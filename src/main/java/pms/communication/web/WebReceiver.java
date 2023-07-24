@@ -135,8 +135,6 @@ public class WebReceiver extends WebClient {
 
                 ControlRequestVO requestVO = ControlUtil.setRemoteControlRequestVO(remoteId, "02", deviceCategory, controlCode, "", "system");
 
-                System.out.println("제어 값 : ");
-
                 if (requestVO != null) {
                     switch (deviceCategorySub) {
                         case "0101":
@@ -225,9 +223,6 @@ public class WebReceiver extends WebClient {
     private void requestEVCharger(JsonObject jsonObject) {
         JsonObject dataObject = jsonObject.get("data").getAsJsonObject();
         String controlType = dataObject.get("controlType").getAsString();
-
-        //EVChargerClient evChargerClient = new EVChargerClient();
-        //evChargerClient.setEvChargerRequest(controlType, jsonObject);
 
         EVChargerClientNew evChargerClientNew = new EVChargerClientNew();
         evChargerClientNew.setControlRequest(controlType, jsonObject);

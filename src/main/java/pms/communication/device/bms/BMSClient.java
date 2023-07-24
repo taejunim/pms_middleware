@@ -380,8 +380,7 @@ public class BMSClient {
         bmsWriter.setRequest(rackCode, rackNo, getConnection(rackCode), requestVO);
         bmsWriter.request();    //제어 요청
 
-        //ControlResponseVO responseVO = bmsWriter.getResponse(); //제어 응답 정보
-        ControlResponseVO responseVO = bmsWriter.getResponse();
+        ControlResponseVO responseVO = bmsWriter.getResponse(); //제어 응답 정보
 
         //수정 필요
         ControlHistoryVO controlHistoryVO = responseVO.getHistoryVO();

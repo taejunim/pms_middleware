@@ -1,7 +1,6 @@
 package pms.system.ess;
 
 import pms.communication.device.pcs.PCSClient;
-import pms.communication.external.smarthub.EVChargerClient;
 import pms.communication.external.smarthub.EVChargerClientNew;
 import pms.vo.device.PcsVO;
 import pms.vo.device.control.ControlRequestVO;
@@ -18,7 +17,6 @@ public class ESSController {
     private static float MAX_OPERATION_SOC; //최대 운영 SoC
     private final PCSClient pcsClient = new PCSClient();
     private final ESSManager essManager = new ESSManager();
-    private final EVChargerClient evChargerClient = new EVChargerClient();
     private final EVChargerClientNew evChargerClientNew = new EVChargerClientNew();
 
     public void setConfig() {
@@ -85,7 +83,6 @@ public class ESSController {
         if (isRackOperate) {
             //제어 요청이 없는 경우에 실행
             if (!pcsClient.isControlRequest()) {
-                //String evChargerRequest = evChargerClient.getEVChargerRequest();
                 String evChargerRequest = evChargerClientNew.getControlRequest();
 
                 //System.out.println("평균 SoC : " + averageSoC);
@@ -145,10 +142,6 @@ public class ESSController {
         } else if (operation.equals("12")) {
             //최소 SoC 유지 운전 상태인지 확인
             if (!isMinHolding) {
-                //evChargerClient.request();
-                //List<EVChargerVO> chargers = evChargerClient.getEVChargers("ess-charge");
-                //int totalChargerCount = evChargerClient.getChargerCount();
-
                 evChargerClientNew.request();   //EV 충전기 API 요청
                 List<EVChargerVO> standbyChargers = evChargerClientNew.getEVChargers("ess-charge");    //대기 상태의 충전기 목록 - ESS 충전 가능 여부 확인을 위해 대기 상태인 EV 충전기 목록 호출
                 int totalChargerCount = evChargerClientNew.getTotalChargerCount();  //총 EV 충전기 개수
@@ -181,7 +174,6 @@ public class ESSController {
                     System.out.println("[EV 충전기] 충전 준비 제어 요청 - PCS 운전 기동");
                 } else {
                     //제어 취소 및 초기화
-                    //evChargerClient.removeEVChargerRequest();
                     evChargerClientNew.resetControlRequest();
                 }
             }
@@ -250,59 +242,5 @@ public class ESSController {
                     break;
             }
         }
-
-
-        /*if (operation.equals("12")) {
-            switch (request) {
-                case "allCharging":   //모든 EV 충전기 충전
-                    if (operationMode.equals("0")) {
-                        if (averageSoC > MIN_OPERATION_SOC) {
-                            controlAutoDischarge("05", "0502"); //ESS 방전
-
-                            System.out.println("[EV 충전기] 제어 요청 - ESS 방전");
-                        } else {
-                            evChargerClient.removeEVChargerRequest();
-                        }
-                    } else if (operationMode.equals("1")) {
-                        controlAutoStandby("05", "0501");   //대기
-
-                        System.out.println("[EV 충전기] 제어 요청 - ESS 대기 : 모든 EV 충전기 충전 중");
-                    }
-                    break;
-                case "charging":  //일부 EV 충전기 충전
-                    if (operationMode.equals("0")) {
-                        if (averageSoC > MIN_OPERATION_SOC) {
-                            controlAutoDischarge("05", "0502"); //ESS 방전
-
-                            System.out.println("[EV 충전기] 제어 요청 - ESS 방전");
-                        } else {
-                            evChargerClient.removeEVChargerRequest();
-                        }
-                    } else if (operationMode.equals("1")) {
-                        controlAutoCharge("05", "0503", "5", null); //ESS 저전력 충전
-
-                        System.out.println("[EV 충전기] 제어 요청 - ESS 저전력 충전");
-                    }
-                    break;
-                case "standby": //모든 EV 충전기 대기
-                    if (operationMode.equals("2")) {
-                        controlAutoStop("05", "0504", null);    //EV 충전 종료 - PCS 운전 종료
-
-                        System.out.println("[EV 충전기] 제어 요청 - PCS 운전 종료 : 모든 EV 충전기 종료");
-                    } else if (operationMode.equals("1")) {
-                        if (averageSoC < MAX_OPERATION_SOC) {
-                            int limitPower = essManager.calculateLimitPower();
-                            String controlValue = String.valueOf(limitPower);
-
-                            controlAutoCharge("04", "0402", controlValue, null);    //전력 변경
-                        }
-
-                        evChargerClient.removeEVChargerRequest();
-
-                        System.out.println("[EV 충전기] 제어 요청 - 충전 전력 변경 : 모든 EV 충전기 종료");
-                    }
-                    break;
-            }
-        }*/
     }
 }

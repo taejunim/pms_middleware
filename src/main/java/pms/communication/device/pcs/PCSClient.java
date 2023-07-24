@@ -251,12 +251,6 @@ public class PCSClient {
         pcsWriter.request(controlRequest);
 
         ControlResponseVO responseVO = pcsWriter.getResponse();
-        String requestType = responseVO.getRequestVO().getType();
-
-        /*if (!requestType.equals("02")) {
-            ControlHistoryVO controlHistoryVO = responseVO.getHistoryVO();
-            insertControlHistory(controlHistoryVO);
-        }*/
 
         ControlHistoryVO controlHistoryVO = responseVO.getHistoryVO();
         insertControlHistory(controlHistoryVO);

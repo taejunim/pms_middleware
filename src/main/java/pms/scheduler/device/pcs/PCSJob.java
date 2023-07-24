@@ -98,7 +98,6 @@ public class PCSJob implements Job {
             if (!requestDetailType.equals("0500")) {
                 if (responseVO.getResult() == 1) {
                     System.out.println("[EV 충전기] 제어 요청 완료, 요청 제거");
-                    //new EVChargerClient().removeEVChargerRequest();
                     new EVChargerClientNew().resetControlRequest();
                 }
             } else {

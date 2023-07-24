@@ -1,7 +1,6 @@
 package pms;
 
 import pms.communication.CommunicationManager;
-import pms.communication.external.smarthub.EVChargerClientNew;
 import pms.scheduler.CommonScheduler;
 import pms.system.PMSManager;
 import pms.system.backup.BackupClient;
@@ -31,11 +30,6 @@ public class Main {
         }
 
         executeCommunication();
-
-        /*EVChargerClientNew evChargerClient = new EVChargerClientNew();
-        evChargerClient.request();
-        List<EVChargerVO> chargers = evChargerClient.getEVChargers("ess-charge");
-        System.out.println(chargers);*/
     }
 
     /**
