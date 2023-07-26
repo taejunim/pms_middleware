@@ -153,6 +153,9 @@ public class PMSManager {
                 case "04":  //센서
                     setSensors(category, categorySub);
                     break;
+                case "05":  //미터기
+                    setMeters(category, categorySub);
+                    break;
                 case "80":  //공조장치
                     setAirConditioners(category, categorySub);
                     break;
@@ -264,6 +267,12 @@ public class PMSManager {
         List<DeviceVO> sensorList = deviceQuery.getDeviceList(category, categorySub);  //센서 하위 분류별 센서 목록
 
         PmsVO.sensors.put(categorySub, sensorList);
+    }
+
+    private void setMeters(String category, String categorySub) {
+        List<DeviceVO> meterList = deviceQuery.getDeviceList(category, categorySub);
+
+        PmsVO.meters.put(category, meterList);
     }
 
     /**

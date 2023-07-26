@@ -25,6 +25,7 @@ public class PmsVO {
     public static Map<String, DeviceVO> converters = new HashMap<>();
     public static Map<String, List<DeviceVO.ComponentVO>> inverters = new HashMap<>();
     public static Map<String, List<DeviceVO>> sensors = new HashMap<>();
+    public static Map<String, List<DeviceVO>> meters = new HashMap<>();
     public static Map<String, List<DeviceVO>> airConditioners = new HashMap<>();
     public static DeviceVO middleware;
 
