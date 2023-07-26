@@ -272,7 +272,7 @@ public class PMSManager {
     private void setMeters(String category, String categorySub) {
         List<DeviceVO> meterList = deviceQuery.getDeviceList(category, categorySub);
 
-        PmsVO.meters.put(category, meterList);
+        PmsVO.meters.put(categorySub, meterList);
     }
 
     /**
