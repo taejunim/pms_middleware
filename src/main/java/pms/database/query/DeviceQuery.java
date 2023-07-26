@@ -4,6 +4,7 @@ import pms.database.QueryUtil;
 import pms.database.SqlSession;
 import pms.vo.device.*;
 import pms.vo.system.DeviceVO;
+import pms.vo.system.PowerRelayVO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -265,6 +266,59 @@ public class DeviceQuery {
         List<Object> voList = new ArrayList<>(dcInverters);
 
         String values = QueryUtil.createInsertValues(voList);
+        sql.append(values);
+
+        return sqlSession.insert(sql.toString());
+    }
+
+    public int insertPowerRelayData(PowerRelayVO powerRelayVO) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO raw_power_relay( RELAY_CODE" +
+                ", REG_DATE" +
+                ", STATUS" +
+                ", RS_LINE_VOLTAGE" +
+                ", ST_LINE_VOLTAGE" +
+                ", TR_LINE_VOLTAGE" +
+                ", R_PHASE_VOLTAGE" +
+                ", S_PHASE_VOLTAGE" +
+                ", T_PHASE_VOLTAGE" +
+                ", R_PHASE_CURRENT" +
+                ", S_PHASE_CURRENT" +
+                ", T_PHASE_CURRENT" +
+                ", R_PHASE_ACTIVE_POWER" +
+                ", S_PHASE_ACTIVE_POWER" +
+                ", T_PHASE_ACTIVE_POWER" +
+                ", TOTAL_ACTIVE_POWER" +
+                ", R_PHASE_REACTIVE_POWER" +
+                ", S_PHASE_REACTIVE_POWER" +
+                ", T_PHASE_REACTIVE_POWER" +
+                ", TOTAL_REACTIVE_POWER" +
+                ", R_PHASE_APPARENT_POWER" +
+                ", S_PHASE_APPARENT_POWER" +
+                ", T_PHASE_APPARENT_POWER" +
+                ", TOTAL_APPARENT_POWER" +
+                ", R_PHASE_POWER_FACTOR" +
+                ", S_PHASE_POWER_FACTOR" +
+                ", T_PHASE_POWER_FACTOR" +
+                ", AVERAGE_POWER_FACTOR" +
+                ", FREQUENCY" +
+                ", TOTAL_ACTIVE_ENERGY" +
+                ", TOTAL_REVERSE_ACTIVE_ENERGY" +
+                ", TOTAL_REACTIVE_ENERGY" +
+                ", TOTAL_REVERSE_REACTIVE_ENERGY" +
+                ", R_PHASE_REVERSE_POWER" +
+                ", S_PHASE_REVERSE_POWER" +
+                ", T_PHASE_REVERSE_POWER" +
+                ", OVER_VOLTAGE_RELAY_ACTION" +
+                ", UNDER_VOLTAGE_RELAY_ACTION" +
+                ", OVER_FREQUENCY_RELAY_ACTION" +
+                ", UNDER_FREQUENCY_RELAY_ACTION" +
+                ", REVERSE_POWER_RELAY_ACTION" +
+                ") " +
+                "VALUES "
+        );
+
+        String values = QueryUtil.createInsertValue(powerRelayVO);
         sql.append(values);
 
         return sqlSession.insert(sql.toString());
