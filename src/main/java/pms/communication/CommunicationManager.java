@@ -5,6 +5,7 @@ import pms.communication.device.bms.BMSClient;
 import pms.communication.device.mobile.converter.ConverterClient;
 import pms.communication.device.mobile.ioboard.IOBoardClient;
 import pms.communication.device.pcs.PCSClient;
+import pms.communication.external.switchboard.PowerMeterClient;
 import pms.communication.external.switchboard.PowerRelayClient;
 import pms.communication.web.WebClient;
 import pms.vo.system.DeviceVO;
@@ -34,6 +35,7 @@ public class CommunicationManager {
         if (essType.equals("01")) {
             executePCS();
             executePowerRelay();
+            executePowerMeter();
         } else if (essType.equals("02")) {
             executeConverter();
             executeIOBoard();
@@ -67,5 +69,10 @@ public class CommunicationManager {
     private void executePowerRelay() {
         PowerRelayClient powerRelayClient = new PowerRelayClient();
         powerRelayClient.execute();
+    }
+
+    private void executePowerMeter() {
+        PowerMeterClient powerMeterClient = new PowerMeterClient();
+        powerMeterClient.execute();
     }
 }
