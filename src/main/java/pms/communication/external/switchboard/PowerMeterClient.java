@@ -58,7 +58,7 @@ public class PowerMeterClient {
     }
 
     private void setConnection() {
-        String port = deviceProperties.getProperty("powerMeter.port");
+        String port = deviceProperties.getProperty("meter.relay.port");
         SerialParameters parameters = new SerialParameters();
         parameters.setPortName(port);                                   //통신 포트
         parameters.setBaudRate(19200);                                  //통신 속도
