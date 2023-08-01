@@ -335,7 +335,7 @@ public class DeviceQuery {
                 ", T_PHASE_CURRENT" +
                 ", N_PHASE_CURRENT" +
                 ", G_PHASE_CURRENT" +
-                ", AVERAGE_CURRENT" +
+                ", AVERAGE_PHASE_CURRENT" +
                 ", RS_LINE_VOLTAGE" +
                 ", ST_LINE_VOLTAGE" +
                 ", TR_LINE_VOLTAGE" +
