@@ -73,10 +73,6 @@ public class PowerMeterReadItem {
         powerFactorItem.add(setRequestItem("3080",3079,2,"FLOAT32",1,"powerFactorB"));
         powerFactorItem.add(setRequestItem("3082",3081,2,"FLOAT32",1,"powerFactorC"));
         powerFactorItem.add(setRequestItem("3084",3083,2,"FLOAT32",1,"powerFactorTotal"));
-        powerFactorItem.add(setRequestItem("3086",3085,2,"FLOAT32",1,"displacementPowerFactorA"));
-        powerFactorItem.add(setRequestItem("3088",3087,2,"FLOAT32",1,"displacementPowerFactorB"));
-        powerFactorItem.add(setRequestItem("3090",3089,2,"FLOAT32",1,"displacementPowerFactorC"));
-        powerFactorItem.add(setRequestItem("3092",3091,2,"FLOAT32",1,"displacementPowerFactorTotal"));
         requestItemsMap.put("powerFactorItem", powerFactorItem);
 
         //Frequency
@@ -88,16 +84,10 @@ public class PowerMeterReadItem {
         List<PowerMeterVO.RequestItem> energyItem = new ArrayList<>();
         energyItem.add(setRequestItem("3204",3203,4,"INT64",1,"activeEnergyDelivered"));
         energyItem.add(setRequestItem("3208",3207,4,"INT64",1,"activeEnergyReceived"));
-        energyItem.add(setRequestItem("3212",3211,4,"INT64",1,"activeEnergyDeliveredPlusReceived"));
-        energyItem.add(setRequestItem("3216",3215,4,"INT64",1,"activeEnergyDeliveredMinusReceived"));
         energyItem.add(setRequestItem("3220",3219,4,"INT64",1,"reactiveEnergyDelivered"));
         energyItem.add(setRequestItem("3224",3223,4,"INT64",1,"reactiveEnergyReceived"));
-        energyItem.add(setRequestItem("3228",3227,4,"INT64",1,"reactiveEnergyDeliveredPlusReceived"));
-        energyItem.add(setRequestItem("3232",3231,4,"INT64",1,"reactiveEnergyDeliveredMinusReceived"));
         energyItem.add(setRequestItem("3236",3235,4,"INT64",1,"apparentEnergyDelivered"));
         energyItem.add(setRequestItem("3240",3239,4,"INT64",1,"apparentEnergyReceived"));
-        energyItem.add(setRequestItem("3244",3243,4,"INT64",1,"apparentEnergyDeliveredPlusReceived"));
-        energyItem.add(setRequestItem("3248",3247,4,"INT64",1,"apparentEnergyDeliveredMinusReceived"));
         requestItemsMap.put("energyItem", energyItem);
 
     }

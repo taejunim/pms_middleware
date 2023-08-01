@@ -66,6 +66,8 @@ public class QueryUtil {
                     value = getValue;
                 } else if (field.getType().equals(float.class)) {
                     value = getValue;
+                } else if (field.getType().equals(long.class)) {
+                    value = getValue;
                 }
             }
         } catch (IllegalAccessException e) {

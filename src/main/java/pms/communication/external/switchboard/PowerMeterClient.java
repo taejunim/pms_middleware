@@ -13,7 +13,6 @@ import pms.system.PMSCode;
 import pms.system.backup.BackupFile;
 import pms.vo.device.error.DeviceErrorVO;
 import pms.vo.system.DeviceVO;
-import pms.vo.system.PmsVO;
 import pms.vo.system.PowerMeterVO;
 
 import java.util.*;
@@ -30,77 +29,76 @@ import java.util.*;
  * 2023/07/28        youyeong       최초 생성
  */
 public class PowerMeterClient {
-    private final PowerMeterScheduler powerRelayScheduler = new PowerMeterScheduler();
-    public static final Properties deviceProperties = ResourceUtil.loadProperties("device");
-    private static ModbusSerialMaster connection;
-    private final DeviceVO powerMeterInfo = PmsVO.meters.get(PMSCode.getCommonCode("DEVICE_CATEGORY_SUB_0502")).get(0);
-    private static Map<String, List<PowerMeterVO.RequestItem>> requestItemsMap = new HashMap<>();   //수신 요청 아이템 Map
+    private final PowerMeterScheduler powerMeterScheduler = new PowerMeterScheduler();
+    public static final Properties deviceProperties = ResourceUtil.loadProperties("device");       //device.properties
+    private static Map<String, ModbusSerialMaster> connections = new HashMap<>();                               //미터기별 connection 정보 갖고 있는 map
+    private static final  Map<String, DeviceVO> powerMeterInfoMap = new HashMap<>();                            //Rack 장비 정보
+    private static Map<String, List<PowerMeterVO.RequestItem>> requestItemsMap = new HashMap<>();               //수신 요청 아이템 Map
     private static List<String> previousErrorCodes = new ArrayList<>();
     private static int previousRegDate = 0;
-    public ModbusSerialMaster getConnection() {
-        return connection;
+
+    public ModbusSerialMaster getConnection(String meterCode) {
+        return connections.get(meterCode);
     }
 
-    public void execute() {
-        System.out.println("execute");
-        setConnection();
-
+    public void execute(DeviceVO deviceVO) {
+        setConnection(deviceVO);
         try {
-            connect();
+            connect(deviceVO.getDeviceCode());
         } catch (Exception e) {
             e.printStackTrace();
 
         } finally {
             requestItemsMap = new PowerMeterReadItem().getRequestItems();
-
-            executeScheduler();
+            executeScheduler(deviceVO.getDeviceCode());
         }
     }
 
-    private void setConnection() {
-        String port = deviceProperties.getProperty("meter.relay.port");
+    private void setConnection(DeviceVO deviceVO) {
+        powerMeterInfoMap.put(deviceVO.getDeviceCode(), deviceVO);
+        String port = deviceProperties.getProperty("meter.power-" + deviceVO.getDeviceNo() + ".port");      //포트 정보 있는 properties ex) meter.power-1 , meter.power-2
         SerialParameters parameters = new SerialParameters();
-        parameters.setPortName(port);                                   //통신 포트
-        parameters.setBaudRate(19200);                                  //통신 속도
-        parameters.setDatabits(8);                                      //8 Data Bits
-        parameters.setParity(AbstractSerialConnection.EVEN_PARITY);     //Parity: NONE
-        parameters.setStopbits(AbstractSerialConnection.ONE_STOP_BIT);  //1 Stop Bit
-        parameters.setEncoding(Modbus.SERIAL_ENCODING_RTU); //RTU
 
-        connection = new ModbusSerialMaster(parameters);
+        parameters.setPortName(port);                                               //통신 포트
+        parameters.setBaudRate(19200);                                              //통신 속도
+        parameters.setDatabits(8);                                                  //8 Data Bits
+        parameters.setParity(AbstractSerialConnection.EVEN_PARITY);                 //Parity: EVEN
+        parameters.setStopbits(AbstractSerialConnection.ONE_STOP_BIT);              //1 Stop Bit
+        parameters.setEncoding(Modbus.SERIAL_ENCODING_RTU);                         //RTU
+
+        ModbusSerialMaster connection = new ModbusSerialMaster(parameters);
         connection.setRetries(0);
         connection.setTimeout(3000);
+
+        connections.put(deviceVO.getDeviceCode(), connection);                      //connections map에는 deviceCode가 key
     }
 
-    public void connect() throws Exception {
-        System.out.println("connect");
-        connection.connect();
+    public void connect(String meterCode) throws Exception {
+        connections.get(meterCode).connect();
     }
 
-    public boolean isConnected() {
-        return connection.isConnected();
+    public boolean isConnected(String meterCode) {
+        return connections.get(meterCode).isConnected();
     }
 
-    public void disconnect() {
-        connection.disconnect();
+    public void disconnect(String meterCode) {
+        connections.get(meterCode).disconnect();
     }
 
-    private void executeScheduler() {
+    private void executeScheduler(String meterCode) {
         try {
-            powerRelayScheduler.execute();
+            powerMeterScheduler.execute(meterCode);
         } catch (SchedulerException e) {
             e.printStackTrace();
         }
     }
 
-    public PowerMeterVO read() {
-        System.out.println("read");
-        PowerMeterReader powerMeterReader = new PowerMeterReader(powerMeterInfo);
-        powerMeterReader.setRequest(connection, requestItemsMap);
+    public PowerMeterVO read(String meterCode) {
+        PowerMeterReader powerMeterReader = new PowerMeterReader(powerMeterInfoMap.get(meterCode));
+        powerMeterReader.setRequest(connections.get(meterCode), requestItemsMap);
         powerMeterReader.request();
 
         PowerMeterVO powerMeterVO = powerMeterReader.getReadData();
-        System.out.println(powerMeterVO);
         List<DeviceErrorVO> powerMeterErrors = powerMeterReader.getPowerMeterErrors();
 
         processData(powerMeterVO, powerMeterErrors);
@@ -108,8 +106,8 @@ public class PowerMeterClient {
         return powerMeterVO;
     }
 
-    public PowerMeterVO readByError() {
-        PowerMeterReader powerMeterReader = new PowerMeterReader(powerMeterInfo);
+    public PowerMeterVO readByError(String meterCode) {
+        PowerMeterReader powerMeterReader = new PowerMeterReader(powerMeterInfoMap.get(meterCode));
         powerMeterReader.setReadDataByError(PMSCode.getDeviceStatus("09"), "01007");
 
         PowerMeterVO powerMeterVO = powerMeterReader.getReadData();
@@ -130,7 +128,7 @@ public class PowerMeterClient {
                 List<String> currentErrorCodes = setCurrentErrorCodes(powerRelayErrors);
 
                 if (!containsErrors(currentErrorCodes)) {
-                    boolean isInsertError = insertErrorData(powerRelayErrors);
+                    boolean isInsertError = insertErrorData(powerRelayErrors, powerMeterVO.getMeterCode());
 
                     if (isInsertError) {
                         previousErrorCodes.clear();
@@ -146,23 +144,21 @@ public class PowerMeterClient {
     private boolean insertData(PowerMeterVO powerMeterVO) {
 
         DeviceQuery deviceQuery = new DeviceQuery();
-  /*      int result = deviceQuery.insertPowerRelayData(powerMeterVO);
+        int result = deviceQuery.insertPowerMeterData(powerMeterVO);
 
         if (result > 0) {
-            new BackupFile().backupData("device", powerMeterVO.getRelayCode(), powerMeterVO);
+            new BackupFile().backupData("device", powerMeterVO.getMeterCode(), powerMeterVO);
         }
 
-        return result > 0;*/
-
-        return true;
+        return result > 0;
     }
 
-    private boolean insertErrorData(List<DeviceErrorVO> errors) {
+    private boolean insertErrorData(List<DeviceErrorVO> errors, String deviceCode) {
         DeviceErrorQuery deviceErrorQuery = new DeviceErrorQuery();
         int result = deviceErrorQuery.insertDeviceError(errors);
 
         if (result > 0) {
-            new BackupFile().backupData("device-error", powerMeterInfo.getDeviceCode(), errors);
+            new BackupFile().backupData("device-error", powerMeterInfoMap.get(deviceCode).getDeviceCode(), errors);
         }
 
         return result > 0;
@@ -173,7 +169,7 @@ public class PowerMeterClient {
     }
 
     private boolean containsErrors(List<String> currentErrorCodes) {
-        System.out.println("PCS 이전 오류 : " + previousErrorCodes + " / 현재 오류 : " + currentErrorCodes);
+        System.out.println("Meter 이전 오류 : " + previousErrorCodes + " / 현재 오류 : " + currentErrorCodes);
         return new HashSet<>(previousErrorCodes).containsAll(currentErrorCodes);
     }
 

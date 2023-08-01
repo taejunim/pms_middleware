@@ -4,6 +4,7 @@ import pms.database.QueryUtil;
 import pms.database.SqlSession;
 import pms.vo.device.*;
 import pms.vo.system.DeviceVO;
+import pms.vo.system.PowerMeterVO;
 import pms.vo.system.PowerRelayVO;
 
 import java.util.ArrayList;
@@ -319,6 +320,57 @@ public class DeviceQuery {
         );
 
         String values = QueryUtil.createInsertValue(powerRelayVO);
+        sql.append(values);
+
+        return sqlSession.insert(sql.toString());
+    }
+
+    public int insertPowerMeterData(PowerMeterVO powerMeterVO) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO raw_power_meter(METER_CODE" +
+                ", REG_DATE" +
+                ", STATUS" +
+                ", R_PHASE_CURRENT" +
+                ", S_PHASE_CURRENT" +
+                ", T_PHASE_CURRENT" +
+                ", N_PHASE_CURRENT" +
+                ", G_PHASE_CURRENT" +
+                ", AVERAGE_CURRENT" +
+                ", RS_LINE_VOLTAGE" +
+                ", ST_LINE_VOLTAGE" +
+                ", TR_LINE_VOLTAGE" +
+                ", AVERAGE_LINE_VOLTAGE" +
+                ", R_PHASE_VOLTAGE" +
+                ", S_PHASE_VOLTAGE" +
+                ", T_PHASE_VOLTAGE" +
+                ", AVERAGE_PHASE_VOLTAGE" +
+                ", R_PHASE_ACTIVE_POWER" +
+                ", S_PHASE_ACTIVE_POWER" +
+                ", T_PHASE_ACTIVE_POWER" +
+                ", TOTAL_ACTIVE_POWER" +
+                ", R_PHASE_REACTIVE_POWER" +
+                ", S_PHASE_REACTIVE_POWER" +
+                ", T_PHASE_REACTIVE_POWER" +
+                ", TOTAL_REACTIVE_POWER" +
+                ", R_PHASE_APPARENT_POWER" +
+                ", S_PHASE_APPARENT_POWER" +
+                ", T_PHASE_APPARENT_POWER" +
+                ", TOTAL_APPARENT_POWER" +
+                ", R_PHASE_POWER_FACTOR" +
+                ", S_PHASE_POWER_FACTOR" +
+                ", T_PHASE_POWER_FACTOR" +
+                ", TOTAL_POWER_FACTOR" +
+                ", FREQUENCY" +
+                ", DELIVERED_ACTIVE_ENERGY" +
+                ", RECEIVED_ACTIVE_ENERGY" +
+                ", DELIVERED_REACTIVE_ENERGY" +
+                ", RECEIVED_REACTIVE_ENERGY" +
+                ", DELIVERED_APPARENT_ENERGY" +
+                ", RECEIVED_APPARENT_ENERGY) " +
+                "VALUES "
+        );
+
+        String values = QueryUtil.createInsertValue(powerMeterVO);
         sql.append(values);
 
         return sqlSession.insert(sql.toString());

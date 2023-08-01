@@ -5,6 +5,7 @@ import com.ghgande.j2mod.modbus.io.ModbusSerialTransaction;
 import com.ghgande.j2mod.modbus.msg.ReadMultipleRegistersRequest;
 import com.ghgande.j2mod.modbus.msg.ReadMultipleRegistersResponse;
 import com.ghgande.j2mod.modbus.procimg.InputRegister;
+import pms.common.util.DateTimeUtil;
 import pms.system.PMSCode;
 import pms.vo.device.error.DeviceErrorVO;
 import pms.vo.system.DeviceVO;
@@ -51,13 +52,10 @@ public class PowerMeterReader {
      * - 수신 요청 및 수신 데이터 처리 실행
      */
     public void request() {
-
-
         //수신할 데이터 정보를 그룹별로 수신 요청
         for (String group : requestItemsMap.keySet()) {
-            System.out.println(group + " 요청");
-            List<PowerMeterVO.RequestItem> requestItems = requestItemsMap.get(group); //그룹별 수신 레지스터 호출
-            ReadMultipleRegistersRequest readRequest    = setReadRequest(requestItems);  //수신 요청 정보 생성
+            List<PowerMeterVO.RequestItem> requestItems = requestItemsMap.get(group);   //그룹별 수신 레지스터 호출
+            ReadMultipleRegistersRequest readRequest    = setReadRequest(requestItems); //수신 요청 정보 생성
             ReadMultipleRegistersResponse readResponse  = getReadResponse(readRequest); //수신 데이터 호출
 
             try {
@@ -107,6 +105,9 @@ public class PowerMeterReader {
     }
 
     private void setReadData(List<PowerMeterVO.RequestItem> requestItems, InputRegister[] inputRegisters) {
+        powerMeterVO.setMeterCode(powerMeterCode);
+        powerMeterVO.setRegDate(DateTimeUtil.getUnixTimestamp());
+        powerMeterVO.setStatus(PMSCode.getDeviceStatus("10"));
         try {
             int firstRegisterIndex = requestItems.get(0).getRegister();
             for (PowerMeterVO.RequestItem requestItem : requestItems) {
@@ -120,6 +121,10 @@ public class PowerMeterReader {
     }
 
     public void setReadDataByError(String statusCode, String errorCodeKey) {
+        powerMeterVO.setMeterCode(powerMeterCode);
+        powerMeterVO.setRegDate(DateTimeUtil.getUnixTimestamp());
+        powerMeterVO.setStatus(statusCode);
+
         String errorCode = PMSCode.getCommonErrorCode(errorCodeKey);
         setPowerMeterErrors(errorCode);
     }
@@ -137,12 +142,13 @@ public class PowerMeterReader {
         powerMeterErrors.add(deviceErrorVO);
     }
 
+    //Float32 변환
     public float toFloat(InputRegister[] inputRegisters, int scale) {
 
         int highInt = inputRegisters[0].toUnsignedShort();
         int lowInt  = inputRegisters[1].toUnsignedShort();
 
-        float result = 9999999;
+        float result = 0;
         if(highInt != 65472 || lowInt != 0) {
             int intResult = lowInt + (highInt << 16);
             result = Float.intBitsToFloat(intResult);
@@ -152,11 +158,17 @@ public class PowerMeterReader {
         return result;
     }
 
+    //Int64 변환
     public long toInt64(InputRegister[] inputRegisters, int scale) {
         byte[] bytes = {inputRegisters[0].toBytes()[0], inputRegisters[0].toBytes()[1], inputRegisters[1].toBytes()[0], inputRegisters[1].toBytes()[1], inputRegisters[2].toBytes()[0], inputRegisters[2].toBytes()[1], inputRegisters[3].toBytes()[0], inputRegisters[3].toBytes()[1]};
         ByteBuffer byte_buf = ByteBuffer.wrap(bytes);
 
-        long result = byte_buf.getLong() / (long) scale;
+        long result = byte_buf.getLong();
+
+        if(result > -9223372036854775808L) {
+            result = byte_buf.getLong() / (long) scale;
+        } else result = 0;
+
         return result;
     }
 

@@ -73,6 +73,8 @@ public class CommunicationManager {
 
     private void executePowerMeter() {
         PowerMeterClient powerMeterClient = new PowerMeterClient();
-        powerMeterClient.execute();
+        for (DeviceVO rackVO : PmsVO.meters.get("0502")) {
+            powerMeterClient.execute(rackVO);
+        }
     }
 }

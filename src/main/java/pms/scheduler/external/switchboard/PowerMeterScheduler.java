@@ -26,12 +26,13 @@ public class PowerMeterScheduler {
         }
     }
 
-    public void execute() throws SchedulerException {
+    public void execute(String meterCode) throws SchedulerException {
         JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("jobGroup", "powerMeter");
-        jobDataMap.put("jobName", "powerMeter-job");
-        jobDataMap.put("triggerGroup", "powerMeter");
-        jobDataMap.put("triggerName", "powerMeter-trigger");
+        jobDataMap.put("meterCode", meterCode);
+        jobDataMap.put("jobGroup", "powerMeter-" + meterCode);
+        jobDataMap.put("jobName", "powerMeter-" + meterCode + "-job");
+        jobDataMap.put("triggerGroup", "powerMeter-" + meterCode);
+        jobDataMap.put("triggerName", "powerMeter-" + meterCode + "-trigger");
 
         JobDetail jobDetail = CommonScheduler.buildJobDetail(PowerMeterJob.class, jobDataMap);
         scheduler.scheduleJob(jobDetail, CommonScheduler.buildTrigger(1, jobDataMap));

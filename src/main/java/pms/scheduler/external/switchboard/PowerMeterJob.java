@@ -1,6 +1,7 @@
 package pms.scheduler.external.switchboard;
 
 import org.quartz.Job;
+import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import pms.communication.external.switchboard.PowerMeterClient;
@@ -21,37 +22,37 @@ public class PowerMeterJob implements Job {
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
-        executeCommunication();
+        JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
+        String meterCode = (String) jobDataMap.get("meterCode");
+        executeCommunication(meterCode);
     }
 
-    private void executeCommunication() {
-        if (powerMeterClient.isConnected()) {
+    private void executeCommunication(String meterCode) {
+        if (powerMeterClient.isConnected(meterCode)) {
             try {
-                System.out.println(" [ Read 시작 ] ");
-                executeRead();
+                executeRead(meterCode);
             } finally {
-                powerMeterClient.disconnect();
+                powerMeterClient.disconnect(meterCode);
             }
         } else {
             try {
-                powerMeterClient.connect();
+                powerMeterClient.connect(meterCode);
             } catch (Exception e) {
-                executeConnectionError();
-                powerMeterClient.disconnect();
+                executeConnectionError(meterCode);
+                powerMeterClient.disconnect(meterCode);
 
                 e.printStackTrace();
             }
         }
     }
 
-    private void executeRead() {
-        PowerMeterVO powerRelayVO = powerMeterClient.read();
-
+    private void executeRead(String meterCode) {
+        PowerMeterVO powerMeterVO = powerMeterClient.read(meterCode);
         //sendReadData(powerRelayVO);
     }
 
-    private void executeConnectionError() {
-        PowerMeterVO powerRelayVO = powerMeterClient.readByError();
+    private void executeConnectionError(String meterCode) {
+        PowerMeterVO powerMeterVO = powerMeterClient.readByError(meterCode);
         //sendReadData(powerRelayVO);
     }
 

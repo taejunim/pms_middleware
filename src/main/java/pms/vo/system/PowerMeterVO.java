@@ -15,8 +15,9 @@ import lombok.Data;
 @Data
 public class PowerMeterVO {
 
-    private int    regDate;
     private String meterCode;
+    private int    regDate;
+    private String status; //Meter 상태
 
     private float currentA;
     private float currentB;
@@ -51,25 +52,15 @@ public class PowerMeterVO {
     private float powerFactorB;
     private float powerFactorC;
     private float powerFactorTotal;
-    private float displacementPowerFactorA;
-    private float displacementPowerFactorB;
-    private float displacementPowerFactorC;
-    private float displacementPowerFactorTotal;
 
     private float frequency;
 
     private long activeEnergyDelivered;
     private long activeEnergyReceived;
-    private long activeEnergyDeliveredPlusReceived;
-    private long activeEnergyDeliveredMinusReceived;
     private long reactiveEnergyDelivered;
     private long reactiveEnergyReceived;
-    private long reactiveEnergyDeliveredPlusReceived;
-    private long reactiveEnergyDeliveredMinusReceived;
     private long apparentEnergyDelivered;
     private long apparentEnergyReceived;
-    private long apparentEnergyDeliveredPlusReceived;
-    private long apparentEnergyDeliveredMinusReceived;
 
     @Data
     public static class RequestItem {
