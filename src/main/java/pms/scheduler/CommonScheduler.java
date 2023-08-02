@@ -95,4 +95,23 @@ public class CommonScheduler {
                 .forJob(jobName, jobGroup)
                 .build();
     }
+
+    /**
+     * Cron Trigger 생성
+     *
+     * @param schedule 스케줄 실행 일정
+     * @return 생성된 Trigger
+     */
+    public static Trigger buildCronTrigger(String schedule, JobDataMap jobDataMap) {
+        String jobName = jobDataMap.get("jobName").toString();  //Job 명
+        String jobGroup = jobDataMap.get("jobGroup").toString();    //Job 그룹
+        String triggerName = jobDataMap.get("triggerName").toString();  //Trigger 명
+        String triggerGroup = jobDataMap.get("triggerGroup").toString();    //Trigger 그룹
+
+        return newTrigger()
+                .withIdentity(triggerName, triggerGroup)    //Trigger Key 추가
+                .withSchedule(CronScheduleBuilder.cronSchedule(schedule)) //매주 일요일 0시 10분 0초에 실행
+                .forJob(jobName, jobGroup)
+                .build();
+    }
 }

@@ -8,6 +8,7 @@ import pms.communication.device.pcs.PCSClient;
 import pms.communication.external.switchboard.PowerMeterClient;
 import pms.communication.external.switchboard.PowerRelayClient;
 import pms.communication.web.WebClient;
+import pms.system.backup.BackupClient;
 import pms.vo.system.DeviceVO;
 import pms.vo.system.PmsVO;
 
@@ -30,6 +31,7 @@ public class CommunicationManager {
     public void executeDevice() {
         String essType = PmsVO.ess.getEssType();
 
+        executeBackup();
         executeBMS();
 
         if (essType.equals("01")) {
@@ -40,6 +42,11 @@ public class CommunicationManager {
             executeConverter();
             executeIOBoard();
         }
+    }
+
+    private void executeBackup() {
+        BackupClient backupClient = new BackupClient();
+        backupClient.execute();
     }
 
     private void executeBMS() {
