@@ -4,7 +4,7 @@ import pms.database.QueryUtil;
 import pms.database.SqlSession;
 import pms.vo.device.*;
 import pms.vo.system.DeviceVO;
-import pms.vo.system.PowerMeterVO;
+import pms.vo.device.external.PowerMeterVO;
 import pms.vo.system.PowerRelayVO;
 
 import java.util.ArrayList;

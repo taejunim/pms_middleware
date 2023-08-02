@@ -13,7 +13,7 @@ import pms.system.PMSCode;
 import pms.system.backup.BackupFile;
 import pms.vo.device.error.DeviceErrorVO;
 import pms.vo.system.DeviceVO;
-import pms.vo.system.PowerMeterVO;
+import pms.vo.device.external.PowerMeterVO;
 
 import java.util.*;
 
@@ -29,13 +29,13 @@ import java.util.*;
  * 2023/07/28        youyeong       최초 생성
  */
 public class PowerMeterClient {
-    private final PowerMeterScheduler powerMeterScheduler = new PowerMeterScheduler();
-    public static final Properties deviceProperties = ResourceUtil.loadProperties("device");       //device.properties
-    private static Map<String, ModbusSerialMaster> connections = new HashMap<>();                               //미터기별 connection 정보 갖고 있는 map
-    private static final  Map<String, DeviceVO> powerMeterInfoMap = new HashMap<>();                            //Rack 장비 정보
-    private static Map<String, List<PowerMeterVO.RequestItem>> requestItemsMap = new HashMap<>();               //수신 요청 아이템 Map
-    private static List<String> previousErrorCodes = new ArrayList<>();
-    private static int previousRegDate = 0;
+    private final PowerMeterScheduler powerMeterScheduler                       = new PowerMeterScheduler();
+    public static final Properties deviceProperties                             = ResourceUtil.loadProperties("device");  //device.properties
+    private static Map<String, ModbusSerialMaster> connections                  = new HashMap<>();                                      //미터기별 connection 정보 갖고 있는 map
+    private static final  Map<String, DeviceVO> powerMeterInfoMap               = new HashMap<>();                                      //Rack 장비 정보
+    private static Map<String, List<PowerMeterVO.RequestItem>> requestItemsMap  = new HashMap<>();                                      //수신 요청 아이템 Map
+    private static final Map<String, List<String>> previousErrorCodesMap        = new HashMap<>();
+    private static final Map<String, Integer> previousRegDateMap                = new HashMap<>();
 
     public ModbusSerialMaster getConnection(String meterCode) {
         return connections.get(meterCode);
@@ -118,25 +118,24 @@ public class PowerMeterClient {
         return powerMeterVO;
     }
 
-    private void processData(PowerMeterVO powerMeterVO, List<DeviceErrorVO> powerRelayErrors) {
+    private void processData(PowerMeterVO powerMeterVO, List<DeviceErrorVO> powerMeterErrors) {
         int currentRegDate = powerMeterVO.getRegDate();
 
-        if (!containsRegDate(currentRegDate)) {
+        if (!containsRegDate(powerMeterVO.getMeterCode(), currentRegDate)) {
             boolean isInsertData = insertData(powerMeterVO);
 
             if (isInsertData) {
-                List<String> currentErrorCodes = setCurrentErrorCodes(powerRelayErrors);
+                List<String> currentErrorCodes = setCurrentErrorCodes(powerMeterErrors);
 
-                if (!containsErrors(currentErrorCodes)) {
-                    boolean isInsertError = insertErrorData(powerRelayErrors, powerMeterVO.getMeterCode());
+                if (!containsErrors(powerMeterVO.getMeterCode(), currentErrorCodes)) {
+                    boolean isInsertError = insertErrorData(powerMeterErrors, powerMeterVO.getMeterCode());
 
                     if (isInsertError) {
-                        previousErrorCodes.clear();
-                        previousErrorCodes = currentErrorCodes;
+                        previousErrorCodesMap.replace(powerMeterVO.getMeterCode(), currentErrorCodes); //이전 오류 코드 목록 갱신
                     }
                 }
 
-                previousRegDate = currentRegDate;
+                previousRegDateMap.replace(powerMeterVO.getMeterCode(), currentRegDate);   //이전 등록 일시 갱신
             }
         }
     }
@@ -164,13 +163,23 @@ public class PowerMeterClient {
         return result > 0;
     }
 
-    private boolean containsRegDate(int currentRegDate) {
-        return previousRegDate == currentRegDate;
+    private boolean containsRegDate(String meterCode, int currentRegDate) {
+        if (previousRegDateMap.containsKey(meterCode)) {
+            return previousRegDateMap.get(meterCode) == currentRegDate;
+        } else {
+            previousRegDateMap.put(meterCode, currentRegDate);
+            return false;
+        }
     }
 
-    private boolean containsErrors(List<String> currentErrorCodes) {
-        System.out.println("Meter 이전 오류 : " + previousErrorCodes + " / 현재 오류 : " + currentErrorCodes);
-        return new HashSet<>(previousErrorCodes).containsAll(currentErrorCodes);
+    private boolean containsErrors(String meterCode, List<String> currentErrorCodes) {
+        if (previousErrorCodesMap.containsKey(meterCode)) {
+            System.out.println("Meter " + meterCode + " 이전 오류 코드 : " + previousErrorCodesMap.get(meterCode) + " / 현재 오류 코드 : " + currentErrorCodes);
+            return new HashSet<>(previousErrorCodesMap.get(meterCode)).containsAll(currentErrorCodes);
+        } else {
+            previousErrorCodesMap.put(meterCode, currentErrorCodes);
+            return false;
+        }
     }
 
     private List<String> setCurrentErrorCodes(List<DeviceErrorVO> currentErrors) {

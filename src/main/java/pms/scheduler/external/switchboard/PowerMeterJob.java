@@ -5,7 +5,7 @@ import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import pms.communication.external.switchboard.PowerMeterClient;
-import pms.vo.system.PowerMeterVO;
+import pms.vo.device.external.PowerMeterVO;
 /**
  * packageName    : pms.scheduler.external.switchboard
  * fileName       : PowerMeterJob
@@ -23,7 +23,7 @@ public class PowerMeterJob implements Job {
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
-        String meterCode = (String) jobDataMap.get("meterCode");
+        String meterCode      = (String) jobDataMap.get("meterCode");
         executeCommunication(meterCode);
     }
 
@@ -40,7 +40,6 @@ public class PowerMeterJob implements Job {
             } catch (Exception e) {
                 executeConnectionError(meterCode);
                 powerMeterClient.disconnect(meterCode);
-
                 e.printStackTrace();
             }
         }

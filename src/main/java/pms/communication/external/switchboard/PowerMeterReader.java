@@ -9,7 +9,7 @@ import pms.common.util.DateTimeUtil;
 import pms.system.PMSCode;
 import pms.vo.device.error.DeviceErrorVO;
 import pms.vo.system.DeviceVO;
-import pms.vo.system.PowerMeterVO;
+import pms.vo.device.external.PowerMeterVO;
 
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
@@ -34,15 +34,15 @@ public class PowerMeterReader {
     private final int unitId;
     private final String powerMeterCode;
     private Map<String, List<PowerMeterVO.RequestItem>> requestItemsMap; //수신 요청 항목 Map
-    private final PowerMeterVO powerMeterVO = new PowerMeterVO();
+    private final PowerMeterVO powerMeterVO            = new PowerMeterVO();
     private final List<DeviceErrorVO> powerMeterErrors = new ArrayList<>();
     public PowerMeterReader(DeviceVO powerMeterInfo) {
-        this.unitId = 1;
+        this.unitId         = 1;
         this.powerMeterCode = powerMeterInfo.getDeviceCode();
     }
 
     public void setRequest(ModbusSerialMaster connection, Map<String, List<PowerMeterVO.RequestItem>> requestItemsMap) {
-        this.connection = connection;
+        this.connection      = connection;
         this.requestItemsMap = requestItemsMap;
     }
 
@@ -162,11 +162,9 @@ public class PowerMeterReader {
     public long toInt64(InputRegister[] inputRegisters, int scale) {
         byte[] bytes = {inputRegisters[0].toBytes()[0], inputRegisters[0].toBytes()[1], inputRegisters[1].toBytes()[0], inputRegisters[1].toBytes()[1], inputRegisters[2].toBytes()[0], inputRegisters[2].toBytes()[1], inputRegisters[3].toBytes()[0], inputRegisters[3].toBytes()[1]};
         ByteBuffer byte_buf = ByteBuffer.wrap(bytes);
-
         long result = byte_buf.getLong();
-
         if(result > -9223372036854775808L) {
-            result = byte_buf.getLong() / (long) scale;
+            result = result / (long) scale;
         } else result = 0;
 
         return result;
