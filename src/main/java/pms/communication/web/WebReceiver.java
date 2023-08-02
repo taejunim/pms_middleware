@@ -128,12 +128,12 @@ public class WebReceiver extends WebClient {
 
                 System.out.println("==============================================");
 
-                //String controlValue = dataObject.get("controlValue").getAsString();
-                //String controllerId = dataObject.get("controllerId").getAsString();
+                String controlValue = dataObject.get("controlValue").getAsString();
+                String controllerId = dataObject.get("controllerId").getAsString();
 
                 //System.out.println(controlValue + " : " + controllerId);
 
-                ControlRequestVO requestVO = ControlUtil.setRemoteControlRequestVO(remoteId, "02", deviceCategory, controlCode, "", "system");
+                ControlRequestVO requestVO = ControlUtil.setRemoteControlRequestVO(remoteId, "02", deviceCategory, controlCode, controlValue, controllerId);
 
                 if (requestVO != null) {
                     switch (deviceCategorySub) {
