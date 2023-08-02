@@ -7,6 +7,7 @@ import pms.communication.device.mobile.ioboard.IOBoardClient;
 import pms.communication.web.WebSender;
 import pms.vo.device.AirConditionerVO;
 import pms.vo.device.SensorVO;
+import pms.vo.device.control.ControlRequestVO;
 import pms.vo.device.control.ControlResponseVO;
 import pms.vo.device.error.DeviceErrorVO;
 import pms.vo.system.DeviceVO;
@@ -57,7 +58,13 @@ public class IOBoardJob implements Job {
 
     private void executeControl(){
         ControlResponseVO responseVO = ioBoardClient.control();
-        webSender.sendResponse(responseVO.getRequestVO().getRemoteId(), "control", responseVO.getResult());
+
+        String remoteId = responseVO.getRequestVO().getRemoteId();
+        String deviceCode = responseVO.getRequestVO().getDeviceCode();
+        String controlCode = responseVO.getRequestVO().getControlCode();
+
+        webSender.sendResponse(remoteId, deviceCode, controlCode, responseVO.getResult(), "");  //제어응답전송수정
+        //webSender.sendResponse(responseVO.getRequestVO().getRemoteId(), "control", responseVO.getResult());
     }
 
     private void executeConnectionError() {

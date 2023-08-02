@@ -64,34 +64,44 @@ public class WebSender extends WebClient {
         webSocketClient.send(json);
     }
 
-    public void sendResponse(String id, String responseType, int responseResult) {
-        String result = null;  //제어 결과 (0, 2, 3: fail, 1: success)
-        String message = "";
+    public void sendResponse(String id, String deviceCode, String controlCode, int result, String message) {
+        String controlResult = null;  //제어 결과 (0, 2, 3: fail, 1: success)
 
-        switch (responseResult) {
+        switch (result) {
             case 0:
-                result = "fail";
-                message = "기타 오류";
+                controlResult = "fail";
+                if (message.equals("")) {
+                    message = "기타 오류";
+                }
                 break;
             case 1:
-                result = "success";
+                controlResult = "success";
                 break;
             case 2:
-                result = "fail";
-                message = "데이터 오류";
+                controlResult = "fail";
+                if (message.equals("")) {
+                    message = "데이터 오류";
+                }
                 break;
             case 3:
-                result = "fail";
-                message = "필수 값 누락";
+                controlResult = "fail";
+                if (message.equals("")) {
+                    message = "필수 값 누락";
+                }
                 break;
         }
+
+        JsonObject bodyJson = new JsonObject();
+        bodyJson.addProperty("deviceCode", deviceCode);
+        bodyJson.addProperty("controlCode", controlCode);
+        bodyJson.addProperty("controlResult", controlResult);
+        bodyJson.addProperty("message", message);
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("id", id);
         jsonObject.addProperty("eventType", "res");
-        jsonObject.addProperty("dataType", responseType);
-        jsonObject.addProperty("result", result);
-        jsonObject.addProperty("message", message);
+        jsonObject.addProperty("dataType", "control");
+        jsonObject.add("data", bodyJson);
 
         String json = getJson(jsonObject);
         webSocketClient.send(json);

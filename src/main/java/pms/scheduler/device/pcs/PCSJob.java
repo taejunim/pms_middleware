@@ -120,7 +120,9 @@ public class PCSJob implements Job {
     private void sendControlResponse(ControlResponseVO responseVO) {
         int result = responseVO.getResult();
         String remoteId = responseVO.getRequestVO().getRemoteId();
+        String pcsCode = responseVO.getRequestVO().getDeviceCode();
+        String controlCode = responseVO.getRequestVO().getControlCode();
 
-        webSender.sendResponse(remoteId, "control", result);
+        webSender.sendResponse(remoteId, pcsCode, controlCode, result, "");  //제어응답전송수정
     }
 }

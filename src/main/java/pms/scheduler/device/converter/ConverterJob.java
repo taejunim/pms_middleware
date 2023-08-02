@@ -73,7 +73,9 @@ public class ConverterJob implements Job {
     private void sendControlResponse(ControlResponseVO responseVO) {
         int result = responseVO.getResult();
         String remoteId = responseVO.getRequestVO().getRemoteId();
+        String converterCode = responseVO.getRequestVO().getDeviceCode();
+        String controlCode = responseVO.getRequestVO().getControlCode();
 
-        webSender.sendResponse(remoteId, "control", result);
+        webSender.sendResponse(remoteId, converterCode, controlCode, result, "");  //제어응답전송수정
     }
 }

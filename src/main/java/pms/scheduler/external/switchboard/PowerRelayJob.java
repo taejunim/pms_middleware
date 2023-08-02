@@ -4,7 +4,6 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import pms.communication.external.switchboard.PowerRelayClient;
-import pms.vo.device.PcsVO;
 import pms.vo.system.PowerRelayVO;
 
 /**
@@ -57,41 +56,6 @@ public class PowerRelayJob implements Job {
         sendReadData(powerRelayVO);
     }
 
-    /*private void executeControl() {
-        ControlResponseVO responseVO = amiClient.control();
-        ControlRequestVO requestVO = responseVO.getRequestVO();
-
-        System.out.println("제어 실행 : " + requestVO);
-
-        String requestType = requestVO.getType();
-        String requestDetailType = requestVO.getDetailType();
-        String controlCode = requestVO.getControlCode();
-
-        if (controlCode.equals("0200010205") || controlCode.equals("0200010206")) {
-            new ESSManager().setOperationType(requestType);
-        }
-
-        if (requestType.equals("02")) {
-            sendControlResponse(responseVO);
-        } else if (requestType.equals("05")) {
-            System.out.println("[EV 충전기] 제어 요청");
-
-            if (!requestDetailType.equals("0500")) {
-                if (responseVO.getResult() == 1) {
-                    System.out.println("[EV 충전기] 제어 요청 완료, 요청 제거");
-                    //new EVChargerClient().removeEVChargerRequest();
-                    new EVChargerClientNew().resetControlRequest();
-                }
-            } else {
-                System.out.println("[EV 충전기] PCS 운전 제어 요청");
-            }
-
-            System.out.println(requestType + "-Result(05) : " + responseVO.getResult());
-        } else {
-            System.out.println(requestType + "-Result(Not 02, 05) : " + responseVO.getResult());
-        }
-    }*/
-
     private void sendReadData(PowerRelayVO powerRelayVO) {
         System.out.println(" [ ReadData ]\n->" + powerRelayVO);
 //        List<String> errorCodes = amiClient.getErrorCodes();
@@ -99,11 +63,4 @@ public class PowerRelayJob implements Job {
 
         //webSender.sendData(pcsInfo, pcsVO, errorCodes);
     }
-
-    /*private void sendControlResponse(ControlResponseVO responseVO) {
-        int result = responseVO.getResult();
-        String remoteId = responseVO.getRequestVO().getRemoteId();
-
-        webSender.sendResponse(remoteId, "control", result);
-    }*/
 }

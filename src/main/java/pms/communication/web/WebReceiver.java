@@ -118,20 +118,16 @@ public class WebReceiver extends WebClient {
 
         if (checkHeader(jsonObject)) {
             JsonObject dataObject = jsonObject.get("data").getAsJsonObject();
+            String deviceCategory = jsonObject.get("deviceCategory").getAsString();
+            String deviceCategorySub = jsonObject.get("deviceCategorySub").getAsString();
+            String deviceCode = jsonObject.get("deviceCode").getAsString();
 
             if (checkControlData(dataObject)) {
                 System.out.println(jsonObject);
-                String deviceCategory = jsonObject.get("deviceCategory").getAsString();
-                String deviceCategorySub = jsonObject.get("deviceCategorySub").getAsString();
-                String deviceCode = jsonObject.get("deviceCode").getAsString();
-                String controlCode = dataObject.get("controlCode").getAsString();
-
                 System.out.println("==============================================");
-
+                String controlCode = dataObject.get("controlCode").getAsString();
                 String controlValue = dataObject.get("controlValue").getAsString();
                 String controllerId = dataObject.get("controllerId").getAsString();
-
-                //System.out.println(controlValue + " : " + controllerId);
 
                 ControlRequestVO requestVO = ControlUtil.setRemoteControlRequestVO(remoteId, "02", deviceCategory, controlCode, controlValue, controllerId);
 
@@ -156,13 +152,13 @@ public class WebReceiver extends WebClient {
                             break;
                     }
                 } else {
-                    new WebSender().sendResponse(remoteId, "control", 0);   //제어 불가 - 추후 변경 예정
+                    new WebSender().sendResponse(remoteId, deviceCode, controlCode, 0, ""); //제어 불가 - 추후 변경 예정
                 }
             } else {
-                new WebSender().sendResponse(remoteId, "control", 2);   //데이터 오류
+                new WebSender().sendResponse(remoteId, deviceCode, "", 2, "");  //데이터 오류
             }
         } else {
-            new WebSender().sendResponse(remoteId, "control", 3);   //필수 값 누락
+            new WebSender().sendResponse(remoteId, "", "", 3, "");   //필수 값 누락
         }
     }
 
@@ -178,6 +174,7 @@ public class WebReceiver extends WebClient {
 
     /**
      * 수정 필요
+     *
      * @param requestVO
      */
     private void requestConverter(ControlRequestVO requestVO) {

@@ -83,7 +83,7 @@ public class BMSJob implements Job {
         String requestType = responseVO.getRequestVO().getType();
 
         if (requestType.equals("02")) {
-            sendControlResponse(responseVO);
+            sendControlResponse(rackCode, responseVO);
         }
     }
 
@@ -103,10 +103,11 @@ public class BMSJob implements Job {
         webSender.sendData(rackInfo, rackVO, errorCodes);
     }
 
-    private void sendControlResponse(ControlResponseVO responseVO) {
+    private void sendControlResponse(String rackCode, ControlResponseVO responseVO) {
         int result = responseVO.getResult();
         String remoteId = responseVO.getRequestVO().getRemoteId();
+        String controlCode = responseVO.getRequestVO().getControlCode();
 
-        webSender.sendResponse(remoteId, "control", result);
+        webSender.sendResponse(remoteId, rackCode, controlCode, result, "");  //제어응답전송수정
     }
 }
