@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import pms.system.ess.ESSManager;
 import pms.vo.device.*;
 import pms.vo.system.DeviceVO;
+import pms.vo.system.PmsVO;
 
 import java.util.List;
 
@@ -396,8 +397,12 @@ public class WebSender extends WebClient {
         JsonObject bodyJson = new JsonObject();
         bodyJson.addProperty("deviceRoom", roomNum);
         bodyJson.addProperty("operationStatus", airConditionerVO.getOperationStatus());
-//        bodyJson.addProperty("operationModeStatus", airConditionerVO.getOperationModeStatus());
-//        bodyJson.addProperty("indoorTemperature", airConditionerVO.getIndoorTemperature());
+
+        if (PmsVO.ess.getEssType().equals("01")) {  //고정형
+            bodyJson.addProperty("operationModeStatus", airConditionerVO.getOperationModeStatus());
+            bodyJson.addProperty("setTemperature",airConditionerVO.getSetTemperature());
+//            bodyJson.addProperty("indoorTemperature", airConditionerVO.getIndoorTemperature());
+        }
 
         String errorFlag = setErrorFlag(airConditionerVO.getWarningFlag(), airConditionerVO.getFaultFlag());
 
