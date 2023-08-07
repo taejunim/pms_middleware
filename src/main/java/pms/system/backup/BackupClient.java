@@ -225,14 +225,14 @@ public class BackupClient {
         channelSftp.quit();
         channel.disconnect();
         session.disconnect();
-        setInVaild(false);
+        setValid(false);
     }
 
     public boolean isValid() {
         return isValid;
     }
 
-    public void setInVaild(boolean isValid) {
+    public void setValid(boolean isValid) {
         this.isValid = isValid;
     }
 }
