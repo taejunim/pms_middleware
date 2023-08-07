@@ -2,6 +2,7 @@ package pms.system.backup;
 
 import com.jcraft.jsch.*;
 import org.quartz.SchedulerException;
+import pms.database.query.DeviceQuery;
 import pms.scheduler.backup.BackupScheduler;
 
 import java.io.File;
@@ -12,11 +13,14 @@ import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static pms.common.util.DateTimeUtil.getCalculatedDate;
 import static pms.system.PMSManager.applicationProperties;
 
 /**
@@ -78,8 +82,28 @@ public class BackupClient {
                 System.out.println("File (" + path + ") Upload Completed.");
                 try {
                     // 파일 삭제
-                    Files.deleteIfExists(path);
-                    System.out.println("File (" + path + ") deleted.");
+                    boolean isFileDeleted = Files.deleteIfExists(path);
+
+                    if (isFileDeleted) {
+                        System.out.println("File (" + path + ") deleted.");
+
+                        String deviceCode = file.getName().split("-")[1];
+                        String tempFileDate = file.getName().replace(".csv","");
+                        String startDate = tempFileDate.substring(tempFileDate.length()-8, tempFileDate.length()) + "000000";
+                        String endDate = new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(getCalculatedDate(startDate, Calendar.DATE, 1));
+
+                        DeviceQuery deviceQuery = new DeviceQuery();
+                        int result = deviceQuery.deleteRawData(deviceCode, startDate, endDate);
+
+                        if (result > 0) {
+                            System.out.println("[ deviceCode : "+deviceCode+" / "+startDate+" ~ "+endDate+" deleted ]");
+                        } else {
+                            System.out.println("Table raw not deleted");
+                        }
+
+                    } else {
+                        System.out.println("File (" + path + ") not deleted.");
+                    }
 
                 } catch (DirectoryNotEmptyException e) {
                     System.out.println("디렉토리가 비어있지 않습니다");

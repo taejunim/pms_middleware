@@ -1,6 +1,7 @@
 package pms.common.util;
 
 import java.lang.reflect.Field;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Arrays;
@@ -64,6 +65,25 @@ public class DateTimeUtil {
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         System.out.println(dateFormat.format(calculatedDate));
+
+        return calculatedDate;
+    }
+
+    public static Date getCalculatedDate(String dateString, int field, int amount) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+
+        Date currentDate = null;
+        try {
+            currentDate = dateFormat.parse(dateString);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(currentDate);
+        calendar.add(field, amount);
+
+        Date calculatedDate = new Date(calendar.getTimeInMillis());
 
         return calculatedDate;
     }

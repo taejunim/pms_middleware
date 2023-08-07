@@ -375,4 +375,60 @@ public class DeviceQuery {
 
         return sqlSession.insert(sql.toString());
     }
+
+    public int deleteRawData(String deviceCode, String startDate, String endDate) {
+
+        ArrayList<String> tableName = new ArrayList<>();
+
+        switch (deviceCode) {
+            case "800101" :
+            case "800102" :
+                tableName.add("raw_air_conditioner");
+                break;
+
+            case "010101" :
+            case "010102" :
+                tableName.add("raw_battery_module");
+                tableName.add("raw_battery_rack");
+                break;
+
+            case "020001" :
+                tableName.add("raw_pcs");
+                break;
+
+            case "050201" :
+            case "050202" :
+                tableName.add("raw_power_meter");
+                break;
+
+            case "050101" :
+                tableName.add("raw_power_relay");
+                break;
+
+            case "040101" :
+            case "040102" :
+            case "040201" :
+            case "040202" :
+            case "040301" :
+            case "040302" :
+            case "040401" :
+            case "040402" :
+            case "040403" :
+                tableName.add("raw_sensor");
+                break;
+        }
+
+        int result = 0;
+
+        for (int i=0; i<tableName.size(); i++) {
+            StringBuilder sql = new StringBuilder();
+            sql.append("DELETE FROM " + tableName.get(i) +
+                    " WHERE REG_DATE >= UNIX_TIMESTAMP('"+startDate+"')" +
+                    " AND REG_DATE < UNIX_TIMESTAMP('"+endDate+"')");
+
+            result += sqlSession.delete(sql.toString());
+        }
+
+        return result;
+    }
 }

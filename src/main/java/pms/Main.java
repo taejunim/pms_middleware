@@ -17,7 +17,6 @@ public class Main {
     public static void main(String[] args) {
         new PMSManager().initSystem();
         new CommonScheduler().startScheduler();
-        new BackupClient().connectSession();
 
         String essType = PmsVO.ess.getEssType();
 

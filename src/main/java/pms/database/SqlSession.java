@@ -302,4 +302,18 @@ public class SqlSession {
 
         return result;
     }
+
+    public int delete(String sql) {
+        int result = 0;
+
+        try {
+            result = executeUpdate(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeResource();
+        }
+
+        return result;
+    }
 }
