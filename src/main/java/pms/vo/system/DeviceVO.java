@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class DeviceVO {
     private String deviceCode;  //장비 코드
-    private int deviceNo;    //장비 번호
+    private int deviceNo;   //장비 번호
     private String deviceName;  //장비 명
     private String deviceCategory;  //장비 분류
     private String deviceCategorySub;   //장비 하위 분류

@@ -19,6 +19,11 @@ public class ESSController {
     private final ESSManager essManager = new ESSManager();
     private final EVChargerClientNew evChargerClientNew = new EVChargerClientNew();
 
+    /**
+     * 환경 설정 정보 설정
+     * <p>
+     * - 최소 보유 SoC, 최소 및 최대 운영 SoC
+     */
     public void setConfig() {
         String essType = PmsVO.ess.getEssType();    //01: 고정형 ESS, 02: 이동형 ESS
 
@@ -30,32 +35,71 @@ public class ESSController {
         }
     }
 
-    private void controlAutoRun(String type, String detailType, String referenceCode) {
+    /**
+     * 운전 제어
+     *
+     * @param type          제어 요청 구분
+     * @param detailType    제어 요청 상세 구분
+     * @param referenceCode 참조 코드
+     */
+    private void controlRun(String type, String detailType, String referenceCode) {
         ControlRequestVO requestVO = ControlUtil.setControlRequestVO(type, detailType, "02", "0200010201", null, referenceCode);
         pcsClient.setControlRequest(requestVO);
     }
 
-    private void controlAutoStop(String type, String detailType, String referenceCode) {
+    /**
+     * 운전 정지 제어
+     *
+     * @param type          제어 요청 구분
+     * @param detailType    제어 요청 상세 구분
+     * @param referenceCode 참조 코드
+     */
+    private void controlStop(String type, String detailType, String referenceCode) {
         ControlRequestVO requestVO = ControlUtil.setControlRequestVO(type, detailType, "02", "0200010202", null, referenceCode);
         pcsClient.setControlRequest(requestVO);
     }
 
+    /**
+     * 대기 모드 제어
+     *
+     * @param type       제어 요청 구분
+     * @param detailType 제어 요청 상세 구분
+     */
     private void controlAutoStandby(String type, String detailType) {
         ControlRequestVO requestVO = ControlUtil.setControlRequestVO(type, detailType, "02", "0200010204", null, null);
         pcsClient.setControlRequest(requestVO);
     }
 
-    private void controlAutoCharge(String type, String detailType, String controlValue, String referenceCode) {
+    /**
+     * 충전 모드 제어
+     *
+     * @param type          제어 요청 구분
+     * @param detailType    제어 요청 상세 구분
+     * @param controlValue  제어 요청 값(충전 전력)
+     * @param referenceCode 참조 코드
+     */
+    private void controlCharge(String type, String detailType, String controlValue, String referenceCode) {
         ControlRequestVO requestVO = ControlUtil.setControlRequestVO(type, detailType, "02", "0200010205", controlValue, referenceCode);
         pcsClient.setControlRequest(requestVO);
     }
 
-    private void controlAutoDischarge(String type, String detailType) {
+    /**
+     * 방전 모드 제어
+     *
+     * @param type       제어 요청 구분
+     * @param detailType 제어 요청 상세 구분
+     */
+    private void controlDischarge(String type, String detailType, String controlValue) {
         ControlRequestVO requestVO = ControlUtil.setControlRequestVO(type, detailType, "02", "0200010206", null, null);
         pcsClient.setControlRequest(requestVO);
     }
 
-    private void controlPower(int referencePower) {
+    /**
+     * 출력 전력 제어
+     *
+     * @param referencePower 참조 전력 값
+     */
+    private void controlOutputPower(int referencePower) {
         int limitPower = essManager.calculateLimitPower();
 
         if (limitPower < referencePower) {
@@ -66,7 +110,12 @@ public class ESSController {
         }
     }
 
-    public void autoControlPCS(PcsVO pcsVO) {
+    /**
+     * PCS 제어
+     *
+     * @param pcsVO PCS 정보
+     */
+    public void controlPCS(PcsVO pcsVO) {
         String operation = pcsVO.getOperationStatus();
         String operationMode = pcsVO.getOperationModeStatus();
         float averageSoC = essManager.averageSoC();
@@ -98,46 +147,63 @@ public class ESSController {
         }
     }
 
+    /**
+     * SoC에 의한 제어
+     * <p>
+     * - 현재 SoC에 따라 PCS 제어 기능
+     *
+     * @param operation     운전 상태
+     * @param operationMode 운전 모드 상태
+     * @param averageSoC    평균 SoC
+     * @param pcsVO         PCS 정보
+     */
     private void controlBySoC(String operation, String operationMode, float averageSoC, PcsVO pcsVO) {
-        String socConfigCode = PmsVO.pcsConfigs.get("03").getConfigCode();
+        String configCode = PmsVO.pcsConfigs.get("03").getConfigCode();  //SoC 환경설정 코드
 
         switch (operationMode) {
             case "0":   //대기
                 //최소 유지 SoC 확인
                 if (averageSoC < MIN_HOLDING_SOC) {
-                    controlByMinSoC(operation, socConfigCode, pcsVO);
+                    controlByMinSoC(operation, configCode, pcsVO);
                 }
                 break;
             case "1":   //충전
                 //최소 SoC 유지 운전 상태인지 확인
                 if (!isMinHolding) {
                     if (averageSoC >= MAX_OPERATION_SOC) {
-                        controlAutoStop("03", "0302", socConfigCode);    //정지 - 최대 SoC
+                        controlStop("03", "0302", configCode);   //정지 - 최대 SoC
                     } else {
-                        controlPower(pcsVO.getReferencePower());    //충전 전력 조절
+                        controlOutputPower(pcsVO.getReferencePower());  //충전 출력 전력 조절
                     }
                 } else {
                     if (averageSoC >= MIN_HOLDING_SOC) {
-                        controlAutoStop("03", "0301", socConfigCode);    //정지 - 최소 SoC
+                        controlStop("03", "0301", configCode);   //정지 - 최소 SoC
                         isMinHolding = false;
                     } else {
-                        controlPower(pcsVO.getReferencePower());    //충전 전력 조절
+                        controlOutputPower(pcsVO.getReferencePower());  //충전 출력 전력 조절
                     }
                 }
                 break;
             case "2":   //방전
                 if (averageSoC <= MIN_OPERATION_SOC) {
-                    controlAutoStop("03", "0301", socConfigCode);    //정지 - 최소 SoC
+                    controlStop("03", "0301", configCode);    //정지 - 최소 SoC
                 }
                 break;
         }
     }
 
-    private void controlByMinSoC(String operation, String socConfigCode, PcsVO pcsVO) {
+    /**
+     * 최소 SoC에 의한 제어
+     *
+     * @param operation  운전 상태
+     * @param configCode 환경설정 코드
+     * @param pcsVO      PCS 정보
+     */
+    private void controlByMinSoC(String operation, String configCode, PcsVO pcsVO) {
         //PCS 운전 상태 확인 (11: 정지, 12: 운전)
         if (operation.equals("11")) {
             if (pcsVO.getWarningFlag().equals("N") && pcsVO.getFaultFlag().equals("N")) {
-                controlAutoRun("03", "0300", socConfigCode); //운전
+                controlRun("03", "0300", configCode); //운전
             }
         } else if (operation.equals("12")) {
             //최소 SoC 유지 운전 상태인지 확인
@@ -150,16 +216,20 @@ public class ESSController {
                     int limitPower = essManager.calculateLimitPower();
                     String controlValue = String.valueOf(limitPower);
 
-                    controlAutoCharge("03", "0301", controlValue, socConfigCode);    //충전 - 최소 SoC
+                    controlCharge("03", "0301", controlValue, configCode);    //충전 - 최소 SoC
                     isMinHolding = true;
                 } else if (standbyChargers.size() < totalChargerCount) {
-                    controlAutoCharge("03", "0301", "5", socConfigCode);    //충전 - 최소 SoC
+                    controlCharge("03", "0301", "5", configCode);    //충전 - 최소 SoC
                     isMinHolding = true;
 
                     System.out.println("EV 충전기 일부 충전 중 ESS 저전력 충전 가능!");
                 }
             }
         }
+    }
+
+    private void controlBySmartHub() {
+
     }
 
     private void controlByEVCharger(String request, String operation, String operationMode, float averageSoC) {
@@ -170,7 +240,7 @@ public class ESSController {
             if (request.equals("ready")) {
                 //SoC가 최소 운영 SoC보다 큰 경우 실행
                 if (averageSoC > MIN_OPERATION_SOC) {
-                    controlAutoRun("05", "0500", null); //PCS 운전
+                    controlRun("05", "0500", null); //PCS 운전
                     System.out.println("[EV 충전기] 충전 준비 제어 요청 - PCS 운전 기동");
                 } else {
                     //제어 취소 및 초기화
@@ -193,7 +263,7 @@ public class ESSController {
                     switch (operationMode) {
                         case "0":   //ESS 대기 상태
                             if (averageSoC > MIN_OPERATION_SOC) {
-                                controlAutoDischarge("05", "0502"); //ESS 방전
+                                controlDischarge("05", "0502", ""); //ESS 방전 - 수정 필요
                                 System.out.println("[EV 충전기] 제어 요청 - ESS 방전");
                             } else {
                                 evChargerClientNew.resetControlRequest();
@@ -201,7 +271,7 @@ public class ESSController {
                             break;
                         case "1":   //ESS 충전 상태
                             if (request.equals("charging")) {
-                                controlAutoCharge("05", "0503", "5", null); //ESS 저전력 충전
+                                controlCharge("05", "0503", "5", null); //ESS 저전력 충전
                                 System.out.println("[EV 충전기] 제어 요청 - ESS 저전력 충전");
                             } else {
                                 controlAutoStandby("05", "0501");   //대기
@@ -218,25 +288,25 @@ public class ESSController {
                             int limitPower = essManager.calculateLimitPower();
                             String controlValue = String.valueOf(limitPower);
 
-                            controlAutoCharge("05", "0503", controlValue, null);    //전력 변경
+                            controlCharge("05", "0503", controlValue, null);    //전력 변경
                         }
 
                         evChargerClientNew.resetControlRequest();
                         System.out.println("[EV 충전기] 제어 요청 - 충전 전력 변경 : 모든 EV 충전기 종료");
                     } else if (operationMode.equals("2")) {
-                        controlAutoStop("05", "0504", null);    //EV 충전 종료 - PCS 운전 종료
+                        controlStop("05", "0504", null);    //EV 충전 종료 - PCS 운전 종료
                         System.out.println("[EV 충전기] 제어 요청 - PCS 운전 종료: 모든 EV 충전기 종료");
                     }
                     break;
                 case "cancel":
                     if (operationMode.equals("0")) {
-                        controlAutoStop("05", "0591", null);    //EV 충전 취소 - PCS 운전 종료
+                        controlStop("05", "0591", null);    //EV 충전 취소 - PCS 운전 종료
                         System.out.println("[EV 충전기] 제어 요청 - PCS 운전 종료: EV 충전 취소");
                     }
                     break;
                 case "error":
                     if (operationMode.equals("2")) {
-                        controlAutoStop("05", "0599", null);    //EV 충전 오류 - PCS 운전 종료
+                        controlStop("05", "0599", null);    //EV 충전 오류 - PCS 운전 종료
                         System.out.println("[EV 충전기] 제어 요청 - PCS 운전 종료: EV 충전 오류");
                     }
                     break;

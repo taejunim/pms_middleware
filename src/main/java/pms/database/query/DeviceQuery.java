@@ -5,7 +5,7 @@ import pms.database.SqlSession;
 import pms.vo.device.*;
 import pms.vo.system.DeviceVO;
 import pms.vo.device.external.PowerMeterVO;
-import pms.vo.system.PowerRelayVO;
+import pms.vo.device.external.PowerRelayVO;
 
 import java.util.ArrayList;
 import java.util.List;

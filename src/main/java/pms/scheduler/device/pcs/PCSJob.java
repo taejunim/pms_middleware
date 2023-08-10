@@ -60,7 +60,7 @@ public class PCSJob implements Job {
         sendReadData(pcsVO);
 
         ESSController essController = new ESSController();
-        essController.autoControlPCS(pcsVO);
+        essController.controlPCS(pcsVO);
     }
 
     private void executeConnectionError() {
