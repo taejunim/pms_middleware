@@ -184,18 +184,15 @@ public class PMSManager {
             String category = categoryVO.getCode();    //장비 분류 코드
 
             switch (category) {
-                case "01":
+                case "01":  //BMS 오류 코드
                     PmsVO.bmsErrorCodes = deviceErrorQuery.getDeviceErrorCodeMap(category, "REFERENCE_CODE");
                     break;
-                case "02":
+                case "02":  //PCS 오류 코드
                     PmsVO.pcsErrorCodes = deviceErrorQuery.getDeviceErrorCodeMap(category, "REFERENCE_CODE");
                     break;
-                /*case "03":
+                case "80":  //공조장치 오류 코드
+                    PmsVO.airConditionerErrorCodes = deviceErrorQuery.getDeviceErrorCodeMap(category, "MANUFACTURER_CODE");
                     break;
-                case "04":
-                    break;
-                case "80":
-                    break;*/
             }
         }
     }

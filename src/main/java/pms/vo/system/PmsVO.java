@@ -36,4 +36,5 @@ public class PmsVO {
     public static Map<Object, DeviceVO.ErrorCodeVO> commonErrorCodes;
     public static Map<Object, DeviceVO.ErrorCodeVO> bmsErrorCodes;
     public static Map<Object, DeviceVO.ErrorCodeVO> pcsErrorCodes;
+    public static Map<Object, DeviceVO.ErrorCodeVO> airConditionerErrorCodes;
 }
