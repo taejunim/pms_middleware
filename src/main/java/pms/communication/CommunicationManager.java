@@ -2,7 +2,7 @@ package pms.communication;
 
 import pms.common.util.ResourceUtil;
 import pms.communication.device.bms.BMSClient;
-import pms.communication.device.mobile.converter.ConverterClient;
+import pms.communication.device.converter.ConverterClient;
 import pms.communication.device.mobile.ioboard.IOBoardClient;
 import pms.communication.device.pcs.PCSClient;
 import pms.communication.external.switchboard.meter.PowerMeterClient;

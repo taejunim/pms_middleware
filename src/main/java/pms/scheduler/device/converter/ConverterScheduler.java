@@ -3,7 +3,6 @@ package pms.scheduler.device.converter;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import pms.scheduler.CommonScheduler;
-import pms.scheduler.device.pcs.PCSJob;
 
 public class ConverterScheduler {
     private Scheduler scheduler;
