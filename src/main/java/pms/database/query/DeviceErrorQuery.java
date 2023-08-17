@@ -77,7 +77,7 @@ public class DeviceErrorQuery {
     public int insertDeviceError(List<DeviceErrorVO> deviceErrors) {
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO HISTORY_ERROR_DEVICE " +
-                "(ERROR_DATE, DEVICE_CODE, ERROR_CODE) " +
+                "(ERROR_DATE, DEVICE_CODE, ERROR_CODE, REMARKS) " +
                 "VALUES "
         );
 
@@ -92,7 +92,7 @@ public class DeviceErrorQuery {
     public int insertComponentError(List<ComponentErrorVO> componentErrors) {
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO HISTORY_ERROR_DEVICE_COMPONENT " +
-                "(ERROR_DATE, DEVICE_CODE, COMPONENT_NO, ERROR_CODE) " +
+                "(ERROR_DATE, DEVICE_CODE, COMPONENT_NO, ERROR_CODE, REMARKS) " +
                 "VALUES "
         );
 
