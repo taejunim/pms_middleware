@@ -36,11 +36,10 @@ public class IOBoardWriter {
         String reqString = getRequestString(requestAddress, controlValue);
         ioBoardCommunication.sendRequest(reqString);
         try {
-            Thread.sleep(100);
+            Thread.sleep(50);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        ioBoardCommunication.sendRequest(reqString);
 
         setResult(controlValue, ioBoardCommunication.getResponseData());
 
@@ -103,19 +102,13 @@ public class IOBoardWriter {
         String stx = "!";
         StringBuilder data = new StringBuilder();
 
-//        for (int i = 1; i < 11; i++) {
-//            if (i == requestAddress) {
-//                data.append("1");
-//            } else {
-//                data.append("0");
-//            }
-//        }
-
-
         for (int i = 1; i < 11; i++) {
-            data.append("1");
+            if (i == requestAddress) {
+                data.append("1");
+            } else {
+                data.append("0");
+            }
         }
-
 
         if (controlValue == 1) {    //운전
             String crc = makeCrc(stx + "H" + data);

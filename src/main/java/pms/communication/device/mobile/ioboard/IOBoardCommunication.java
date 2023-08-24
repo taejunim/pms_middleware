@@ -45,9 +45,6 @@ public class IOBoardCommunication {
                 if (read != null && read.length > 0) {
                     for (byte rByte : read) {
                         char ascii = (char) rByte;
-
-                        System.err.println("Test: " + ascii);
-
                         switch (ascii) {
                             case '!':       //STX: !(Data Write)
                             case '?':       //STX: ?(Data Read)
@@ -80,8 +77,9 @@ public class IOBoardCommunication {
 
         int[] responseData = toIntList(responseList);    //ArrayList -> int[]
 
+        System.out.println("!!! 제어 응답값: ");
         for (int i : responseData) {
-            System.err.print((char) i);
+            System.out.print((char) i);     //!!! 제어 응답값
         }
 
         if (!checkCrc(responseData)) {        //CRC 확인

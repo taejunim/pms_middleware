@@ -2,6 +2,7 @@ package pms.communication.device.mobile.ioboard;
 
 import jssc.SerialPort;
 import jssc.SerialPortException;
+import jssc.SerialPortList;
 import org.quartz.SchedulerException;
 import pms.common.util.DateTimeUtil;
 import pms.database.query.ControlQuery;
@@ -18,10 +19,9 @@ import pms.vo.history.ControlHistoryVO;
 import pms.vo.system.DeviceVO;
 import pms.vo.system.PmsVO;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.*;
 
 import static pms.communication.CommunicationManager.deviceProperties;
 
@@ -59,6 +59,7 @@ public class IOBoardClient {
         }
     }
 
+
     /**
      * Execute IOBoard scheduler
      */
@@ -84,7 +85,11 @@ public class IOBoardClient {
         serialPort = new SerialPort(deviceProperties.getProperty("ioBoard.port"));
         serialPort.openPort();
         serialPort.setParams(SerialPort.BAUDRATE_38400, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+
+        System.out.println(deviceProperties.getProperty("ioBoard.port"));
+        System.out.println("!!! port " + serialPort.isOpened());
     }
+
 
     /**
      * Disconnect IOBoard port
@@ -539,4 +544,94 @@ public class IOBoardClient {
     public Map<String, DeviceVO> getAirConditionerDeviceVosMap() {
         return airConditionerDeviceVosMap;
     }
+
+
+    /**
+     * !!! Test Connect IOBoard
+     * <p>
+     * 수동 포트 입력 후 연결
+     */
+    private void testConnect(){
+        String[] portNameList = SerialPortList.getPortNames();
+        System.out.println("+++++++++++++++++++++++++++++++");
+        for (String s : portNameList) {
+            System.out.println(s);
+        }
+        System.out.println("+++++++++++++++++++++++++++++++");
+
+        System.out.println("연결 포트명 입력: ");
+        Scanner scanner = new Scanner(System.in);
+        String portName = scanner.nextLine();
+
+        serialPort = new SerialPort(portName);
+        try {
+            serialPort.openPort();
+            serialPort.setParams(SerialPort.BAUDRATE_38400, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+        } catch (SerialPortException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Test execute
+     */
+    public void testControlExecute() {
+
+        try {
+            Boolean isOpened = false;
+            while (!isOpened) {
+                Thread.sleep(1000);
+                testConnect();
+                isOpened = serialPort.isOpened();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            while (serialPort.isOpened()) {
+                ControlRequestVO requestVO = new ControlRequestVO();
+
+                Scanner scanner;
+                requestVO.setAddress(99);
+                while (requestVO.getAddress() == 99) {
+                    System.out.println("제어 기기 번호 입력: ");
+                    scanner = new Scanner(System.in);
+                    int address = scanner.nextInt();
+                    if (0 < address && address < 11) {
+                        requestVO.setAddress(address);
+                    } else {
+                        System.err.println("없는 장비!");
+                    }
+                }
+
+                Boolean isOrderRetry = true;
+                while (isOrderRetry) {
+                    scanner = new Scanner(System.in);
+                    System.out.println("ON/OFF? : ");
+                    String text = scanner.nextLine();
+                    if (text.equals("on") || text.equals("ON")) {
+                        requestVO.setControlValue(1);
+                        isOrderRetry = false;
+                    } else if (text.equals("off") || text.equals("OFF")) {
+                        requestVO.setControlValue(0);
+                        isOrderRetry = false;
+                    } else {
+                        System.err.println("제어 명령어 오기입! 다시!");
+                    }
+                }
+
+                System.out.println("!!! 제어 시작: " + requestVO);
+                IOBoardWriter ioBoardWriter = new IOBoardWriter();
+                ioBoardWriter.setConnection(serialPort);
+                ioBoardWriter.request(requestVO);
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }
+
 }
