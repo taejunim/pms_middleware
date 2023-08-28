@@ -248,7 +248,7 @@ public class ControlUtil {
         requestVO.setReferenceCode(referenceCode);
         requestVO.setControllerId("system");
 
-        if (controlValue == null) {
+        if (controlValue == null || controlValue.equals("")) {
             requestVO.setControlValue(controlVO.getControlValue());
         } else {
             requestVO.setControlValue(Integer.parseInt(controlValue));

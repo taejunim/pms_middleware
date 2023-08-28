@@ -127,7 +127,7 @@ public class BMSClient {
 
             ModbusRTUTCPTransport transport = new ModbusRTUTCPTransport();
             connection.setModbusTransport(transport);
-            connection.setTimeout(5000);
+            connection.setTimeout(3000);
 
             connections.put(rackCode, connection);    //연결 정보 추가
         } catch (UnknownHostException e) {

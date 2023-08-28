@@ -17,6 +17,7 @@ import java.util.List;
  * <p>
  * - BMS 통신 스케줄러 작업 실행
  */
+@DisallowConcurrentExecution
 public class BMSJob implements Job {
     private final BMSClient bmsClient = new BMSClient();
     private final WebSender webSender = new WebSender();
@@ -26,27 +27,18 @@ public class BMSJob implements Job {
         JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
         String rackCode = (String) jobDataMap.get("rackCode");
 
-        executeCommunication(rackCode);
-    }
-
-    private void executeCommunication(String rackCode) {
         if (bmsClient.isConnected(rackCode)) {
             try {
                 if (!bmsClient.isControlRequest(rackCode)) {
-                    //System.out.println("Read 1.");
                     executeRead(rackCode);
-                    //System.out.println("Read 2.");
                 } else {
                     executeControl(rackCode);
                 }
             } finally {
-                //System.out.println("Read 3.");
                 bmsClient.disconnect(rackCode);
-                //System.out.println("Disconnected : " + !bmsClient.isConnected(rackCode));
             }
         } else {
             try {
-                //System.out.println("Read 4.");
                 bmsClient.connect(rackCode);
             } catch (Exception e) {
                 //System.out.println("Connected Error.");
@@ -62,13 +54,17 @@ public class BMSJob implements Job {
                 e.printStackTrace();
                 //e.getLocalizedMessage();
             }
-            //System.out.println("Read 5.");
         }
     }
 
+    /**
+     * 수신 실행
+     *
+     * @param rackCode Rack 코드
+     */
     private void executeRead(String rackCode) {
         BmsVO bmsVO = bmsClient.read(rackCode);
-        sendReadData(rackCode, bmsVO.getRack());
+        sendReadData(rackCode, bmsVO);
 
         BmsVO.RackVO rackVO = bmsVO.getRack();
 
@@ -78,6 +74,11 @@ public class BMSJob implements Job {
         essManager.saveLimitPower(rackVO);
     }
 
+    /**
+     * 제어 실행
+     *
+     * @param rackCode Rack 코드
+     */
     private void executeControl(String rackCode) {
         ControlResponseVO responseVO = bmsClient.control(rackCode);
         String requestType = responseVO.getRequestVO().getType();
@@ -87,22 +88,39 @@ public class BMSJob implements Job {
         }
     }
 
+    /**
+     * 연결 오류 시, 실행
+     *
+     * @param rackCode Rack 코드
+     */
     private void executeConnectionError(String rackCode) {
         try {
             BmsVO bmsVO = bmsClient.readByError(rackCode);
-            sendReadData(rackCode, bmsVO.getRack());
+            sendReadData(rackCode, bmsVO);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private void sendReadData(String rackCode, BmsVO.RackVO rackVO) {
+    /**
+     * 수신 데이터 전송
+     *
+     * @param rackCode Rack 코드
+     * @param bmsVO    BMS 정보
+     */
+    private void sendReadData(String rackCode, BmsVO bmsVO) {
         DeviceVO rackInfo = bmsClient.getRackInfo(rackCode);
         List<String> errorCodes = bmsClient.getErrorCodes(rackCode);
 
-        webSender.sendData(rackInfo, rackVO, errorCodes);
+        webSender.sendData(rackInfo, bmsVO, errorCodes);
     }
 
+    /**
+     * 제어 응답 전송
+     *
+     * @param rackCode   Rack 코드
+     * @param responseVO 제어 응답 정보
+     */
     private void sendControlResponse(String rackCode, ControlResponseVO responseVO) {
         int result = responseVO.getResult();
         String remoteId = responseVO.getRequestVO().getRemoteId();

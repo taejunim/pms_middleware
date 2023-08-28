@@ -53,17 +53,19 @@ public class BMSReader {
     public void request() {
         //수신할 데이터 정보를 그룹별로 수신 요청
         for (String group : requestItemsMap.keySet()) {
-            List<BmsVO.RequestItem> requestItems = requestItemsMap.get(group); //그룹별 수신 레지스터 호출
+            List<BmsVO.RequestItem> requestItems = requestItemsMap.get(group);  //그룹별 수신 레지스터 호출
 
-            ReadInputRegistersRequest readRequest = setReadRequest(requestItems);  //수신 요청 정보 생성
+            ReadInputRegistersRequest readRequest = setReadRequest(requestItems);   //수신 요청 정보 생성
             ReadInputRegistersResponse readResponse = getReadResponse(readRequest); //수신 데이터 호출
 
             if (readResponse != null) {
                 setResponseItems(group, requestItems, readResponse);
             }
 
+            //데이터 수신 딜레이
             try {
                 Thread.sleep(5);
+                //Thread.sleep(200);    //KPC 요청에 의한 딜레이 설정 값
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -177,6 +179,8 @@ public class BMSReader {
 
             wordCount += size;
         }
+
+        ReadMultipleRegistersRequest multipleRegistersRequest = new ReadMultipleRegistersRequest();
 
         ReadInputRegistersRequest request = new ReadInputRegistersRequest();
         request.setReference(reference);
@@ -353,7 +357,7 @@ public class BMSReader {
                 case 10:    //Bit 5 - 비상정지 릴레이 접점
                     rackVO.setEmergencyRelayContact(statusCode);
                     break;
-                case 9: //Bit 6 - 사전충전 릴레이 동작
+                case 9:     //Bit 6 - 사전충전 릴레이 동작
                     rackVO.setPrechargeRelayAction(statusCode);
                     break;
             }
