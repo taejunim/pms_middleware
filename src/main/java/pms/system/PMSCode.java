@@ -91,4 +91,20 @@ public class PMSCode {
         else
             return null;
     }
+
+    public static String getAirConditionerCode(String key) {
+        if (PmsVO.airConditionerErrorCodes.containsKey(key)) {
+            return PmsVO.airConditionerErrorCodes.get(key).getErrorCode();
+        } else {
+            return null;
+        }
+    }
+
+    public static String getAirConditionerName(String key) {
+        if (PmsVO.airConditionerErrorCodes.containsKey(key)) {
+            return PmsVO.airConditionerErrorCodes.get(key).getErrorCodeName();
+        } else {
+            return null;
+        }
+    }
 }

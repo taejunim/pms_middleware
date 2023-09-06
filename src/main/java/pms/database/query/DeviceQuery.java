@@ -185,6 +185,22 @@ public class DeviceQuery {
         return sqlSession.insert(sql.toString());
     }
 
+    public int insertAirConditionerData(AirConditionerVO airConditionerData) {
+        StringBuilder sql = new StringBuilder();
+
+        sql.append("INSERT INTO RAW_AIR_CONDITIONER " +
+                "(AIR_CONDITIONER_CODE, REG_DATE, OPERATION_STATUS, OPERATION_MODE_STATUS, " +
+                "INDOOR_TEMPERATURE, SET_TEMPERATURE, WARNING_FLAG, FAULT_FLAG) " +
+                "VALUES "
+        );
+
+        String values = QueryUtil.createInsertValue(airConditionerData);
+        sql.append(values);
+
+        System.out.println("!!!" + sql.toString());
+        return sqlSession.insert(sql.toString());
+    }
+
     public int insertAirConditionersData(List<AirConditionerVO> airConditionerData) {
         StringBuilder sql = new StringBuilder();
 
