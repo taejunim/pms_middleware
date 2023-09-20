@@ -27,6 +27,8 @@ public class PCSWriter {
 
         if (writeResponse != null) {
             result = setResult(address, value, writeResponse);
+        } else {
+            //송신 오류
         }
     }
 
@@ -59,6 +61,8 @@ public class PCSWriter {
             short value = (short) writeResponse.getRegisterValue();
 
             responseVO = ControlUtil.setControlResponseVO(address, value, requestVO);
+        } else {
+            //송신 오류
         }
     }
 

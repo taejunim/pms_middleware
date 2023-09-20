@@ -127,7 +127,7 @@ public class BMSClient {
 
             ModbusRTUTCPTransport transport = new ModbusRTUTCPTransport();
             connection.setModbusTransport(transport);
-            connection.setTimeout(3000);
+            connection.setTimeout(1000);
 
             connections.put(rackCode, connection);    //연결 정보 추가
         } catch (UnknownHostException e) {
@@ -153,7 +153,6 @@ public class BMSClient {
      *
      * @param rackCode Rack 코드
      * @return Rack, Module 수신 데이터
-     * @throws SQLException SQLException
      */
     public BmsVO read(String rackCode) {
         BMSReader bmsReader = new BMSReader(getRackInfo(rackCode));
@@ -286,16 +285,20 @@ public class BMSClient {
         List<ComponentErrorVO> componentErrors = errors.getComponentErrors();
 
         DeviceErrorQuery deviceErrorQuery = new DeviceErrorQuery();
-        rackResult = deviceErrorQuery.insertDeviceError(deviceErrors);
+        rackResult = deviceErrorQuery.insertDeviceErrors(deviceErrors);
 
         if (rackResult > 0) {
             new BackupFile().backupData("device-error", deviceErrors.get(0).getDeviceCode(), deviceErrors);
 
-            moduleResult = deviceErrorQuery.insertComponentError(componentErrors);
+            if (!componentErrors.isEmpty()) {
+                moduleResult = deviceErrorQuery.insertComponentErrors(componentErrors);
 
-            if (moduleResult > 0) {
+                if (moduleResult > 0) {
+                    new BackupFile().backupData("component-error", componentErrors.get(0).getDeviceCode(), componentErrors);
+                    complete = true;
+                }
+            } else {
                 complete = true;
-                new BackupFile().backupData("component-error", componentErrors.get(0).getDeviceCode(), componentErrors);
             }
         }
 

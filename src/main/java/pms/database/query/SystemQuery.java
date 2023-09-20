@@ -72,6 +72,8 @@ public class SystemQuery {
     public EssVO getESS() {
         String sql = "SELECT ESS_CODE, " +
                 "ESS_TYPE, " +
+                "CONTRACT_POWER, " +
+                "TOTAL_BATTERY_ENERGY, " +
                 "TOTAL_CHARGE, " +
                 "TOTAL_DISCHARGE, " +
                 "AUTO_CONTROL_FLAG " +
@@ -155,6 +157,6 @@ public class SystemQuery {
     }
 
     public void updateOperationScheduleCount() {
-        
+
     }
 }

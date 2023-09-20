@@ -4,6 +4,7 @@ import pms.database.QueryUtil;
 import pms.database.SqlSession;
 import pms.vo.history.EnergyDetailHistoryVO;
 import pms.vo.history.EnergyHistoryVO;
+import pms.vo.history.EnergyHistoryVONew;
 
 public class EnergyQuery {
     SqlSession sqlSession = new SqlSession();
@@ -32,6 +33,27 @@ public class EnergyQuery {
                 "WHERE ENERGY_NO = '" + energyHistoryVO.getEnergyNo() + "'";
 
         return sqlSession.update(sql);
+    }
+
+
+    /**
+     * 전력량 이력 등록
+     *
+     * @param energyHistoryVO
+     * @return
+     */
+    public int insertEnergyHistoryNew(EnergyHistoryVONew energyHistoryVO) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO HISTORY_ENERGY " +
+                "(ENERGY_NO, OPERATION_HISTORY_TYPE, OPERATION_HISTORY_DATE, PCS_CODE, " +
+                "OPERATION_MODE, OPERATION_TYPE, SCHEDULE_NO) " +
+                "VALUES "
+        );
+
+        String values = QueryUtil.createInsertValue(energyHistoryVO);
+        sql.append(values);
+
+        return sqlSession.insert(sql.toString());
     }
 
     public int insertEnergyDetailHistory(EnergyDetailHistoryVO energyDetailHistoryVO) {

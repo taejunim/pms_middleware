@@ -11,6 +11,8 @@ import java.math.BigDecimal;
 public class EssVO {
     private String essCode; //ESS 코드
     private String essType; //ESS 유형 - 01: 고정형 ESS, 02: 이동형 ESS
+    private float contractPower;    //계약 전력
+    private float totalBatteryEnergy;   //총 배터리 용량
     private String totalCharge; //총 누적 충전량
     private String totalDischarge;  //총 누적 방전량
     private String autoControlFlag; //자동 제어 여부 - Y: 자동(일정), N: 수동(원격)

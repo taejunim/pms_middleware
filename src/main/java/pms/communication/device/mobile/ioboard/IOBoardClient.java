@@ -244,7 +244,7 @@ public class IOBoardClient {
         }
 
         DeviceErrorQuery deviceErrorQuery = new DeviceErrorQuery();
-        int result = deviceErrorQuery.insertDeviceError(errorVOList);
+        int result = deviceErrorQuery.insertDeviceErrors(errorVOList);
 
         //!!! 파일 백업 구현 필
         /*if (result > 0) {

@@ -109,8 +109,10 @@ public class PowerMeterReader {
         powerMeterVO.setMeterCode(powerMeterCode);
         powerMeterVO.setRegDate(DateTimeUtil.getUnixTimestamp());
         powerMeterVO.setStatus(PMSCode.getDeviceStatus("10"));
+
         try {
             int firstRegisterIndex = requestItems.get(0).getRegister();
+
             for (PowerMeterVO.RequestItem requestItem : requestItems) {
                 int registerIndex = requestItem.getRegister() - firstRegisterIndex;
                 InputRegister[] registerData = Arrays.copyOfRange(inputRegisters, registerIndex, registerIndex + requestItem.getSize());

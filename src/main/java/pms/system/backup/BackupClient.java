@@ -4,6 +4,7 @@ import com.jcraft.jsch.*;
 import org.quartz.SchedulerException;
 import pms.database.query.DeviceQuery;
 import pms.scheduler.backup.BackupScheduler;
+import pms.vo.system.PmsVO;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,11 +37,12 @@ import static pms.system.PMSManager.applicationProperties;
  */
 public class BackupClient {
     private final BackupScheduler backupScheduler = new BackupScheduler();
+    public final String SEPARATOR = File.separator; //파일 경로 구분자 - OS 구분없이 사용 가능
     private final String SFTP_HOST = applicationProperties.getProperty("sftp.host");
     private final int SFTP_PORT = Integer.parseInt(applicationProperties.getProperty("sftp.port"));
     private final String SFTP_USER = applicationProperties.getProperty("sftp.user");
     private final String SFTP_PASSWORD = applicationProperties.getProperty("sftp.password");
-    private final String SFTP_ROOT_PATH = applicationProperties.getProperty("sftp.root.path");
+    private final String SFTP_ROOT_PATH = applicationProperties.getProperty("sftp.root.path") + SEPARATOR + PmsVO.ess.getEssCode();
     public final String FILE_PATH = applicationProperties.getProperty("file.path");
     public final String SLASH = applicationProperties.getProperty("path.slash");
     private boolean isValid = false;
@@ -62,7 +64,7 @@ public class BackupClient {
 
         File file = new File(uploadingFile);
 
-        String filePath = SFTP_ROOT_PATH + SLASH + uploadingFile.replace(FILE_PATH + SLASH, "").replace(file.getName(), "");
+        String filePath = SFTP_ROOT_PATH + SEPARATOR + uploadingFile.replace(FILE_PATH + SEPARATOR, "").replace(file.getName(), "");
 
         makeDirectory(filePath);
 
@@ -207,7 +209,7 @@ public class BackupClient {
             channelSftp.put(in, file.getName());
 
             // 업로드 성공 확인
-            if (this.isExist(channelSftp, path + SLASH + file.getName())) {
+            if (this.isExist(channelSftp, path + SEPARATOR + file.getName())) {
                 isUploaded = true;
             }
         } catch (SftpException e) {

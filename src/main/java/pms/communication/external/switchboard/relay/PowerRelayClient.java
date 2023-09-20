@@ -29,7 +29,6 @@ public class PowerRelayClient {
     private static ModbusSerialMaster connection;
     private final DeviceVO powerRelayInfo = PmsVO.meters.get(PMSCode.getCommonCode("DEVICE_CATEGORY_SUB_0501")).get(0);
     private static Map<String, List<PowerRelayVO.RequestItem>> requestItemsMap = new HashMap<>();   //수신 요청 아이템 Map
-    private static int heartbeatInterval = 3;
     private static List<String> previousErrorCodes = new ArrayList<>();
     private static int previousRegDate = 0;
     public ModbusSerialMaster getConnection() {
@@ -87,16 +86,6 @@ public class PowerRelayClient {
         } catch (SchedulerException e) {
             e.printStackTrace();
         }
-    }
-
-    public boolean checkHeartbeatInterval() {
-
-        if (heartbeatInterval > 0) {
-            heartbeatInterval = heartbeatInterval - 1;
-            return false;
-        }
-
-        return heartbeatInterval == 0;
     }
 
     public PowerRelayVO read() {
@@ -161,7 +150,7 @@ public class PowerRelayClient {
 
     private boolean insertErrorData(List<DeviceErrorVO> errors) {
         DeviceErrorQuery deviceErrorQuery = new DeviceErrorQuery();
-        int result = deviceErrorQuery.insertDeviceError(errors);
+        int result = deviceErrorQuery.insertDeviceErrors(errors);
 
         if (result > 0) {
             new BackupFile().backupData("device-error", powerRelayInfo.getDeviceCode(), errors);

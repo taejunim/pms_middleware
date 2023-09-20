@@ -5,6 +5,7 @@ import pms.database.SqlSession;
 import pms.vo.device.BmsVO;
 import pms.vo.device.error.ComponentErrorVO;
 import pms.vo.device.error.DeviceErrorVO;
+import pms.vo.history.EnergyHistoryVO;
 import pms.vo.system.DeviceVO;
 
 import java.sql.SQLException;
@@ -74,7 +75,20 @@ public class DeviceErrorQuery {
         return sqlSession.selectMap(sql, DeviceVO.ErrorCodeVO.class, mapKeys, "_");
     }
 
-    public int insertDeviceError(List<DeviceErrorVO> deviceErrors) {
+    public int insertCommonError(DeviceErrorVO deviceErrorVO) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO HISTORY_ERROR_DEVICE " +
+                "(ERROR_DATE, DEVICE_CODE, ERROR_CODE, REMARKS) " +
+                "VALUES "
+        );
+
+        String values = QueryUtil.createInsertValue(deviceErrorVO);
+        sql.append(values);
+
+        return sqlSession.insert(sql.toString());
+    }
+
+    public int insertDeviceErrors(List<DeviceErrorVO> deviceErrors) {
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO HISTORY_ERROR_DEVICE " +
                 "(ERROR_DATE, DEVICE_CODE, ERROR_CODE, REMARKS) " +
@@ -89,7 +103,7 @@ public class DeviceErrorQuery {
         return sqlSession.insert(sql.toString());
     }
 
-    public int insertComponentError(List<ComponentErrorVO> componentErrors) {
+    public int insertComponentErrors(List<ComponentErrorVO> componentErrors) {
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO HISTORY_ERROR_DEVICE_COMPONENT " +
                 "(ERROR_DATE, DEVICE_CODE, COMPONENT_NO, ERROR_CODE, REMARKS) " +

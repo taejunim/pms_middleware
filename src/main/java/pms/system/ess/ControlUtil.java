@@ -2,6 +2,7 @@ package pms.system.ess;
 
 import pms.common.util.DateTimeUtil;
 import pms.communication.external.smarthub.EVChargerClientNew;
+import pms.communication.external.switchboard.meter.PowerMeterClient;
 import pms.system.PMSCode;
 import pms.vo.device.control.ControlRequestVO;
 import pms.vo.device.control.ControlResponseVO;
@@ -31,6 +32,7 @@ public class ControlUtil {
                 address = getAirConditionerAddress(deviceCode, controlType);
                 break;
             case "90":
+                address = Integer.parseInt(controlType);
                 break;
         }
 
@@ -137,7 +139,21 @@ public class ControlUtil {
         int powerValue = 0;
 
         if (controlType.equals("0205")) {
-            EVChargerClientNew evChargerClientNew = new EVChargerClientNew();
+            ESSManager essManager = new ESSManager();
+            essManager.getTotalEVChargerPower();
+
+            float totalEVChargerPower = essManager.getTotalEVChargerPower();
+            float usableChargePower = essManager.CONTRACT_POWER - totalEVChargerPower;  //사용 가능한 전력
+
+            if (usableChargePower == essManager.CONTRACT_POWER) {
+                powerValue = new ESSManager().calculateLimitPower();
+            } else {
+                if (usableChargePower > 5) {
+                    powerValue = (int) Math.floor(usableChargePower);
+                }
+            }
+
+            /*EVChargerClientNew evChargerClientNew = new EVChargerClientNew();
             evChargerClientNew.request();   //EV 충전기 API 요청
 
             List<EVChargerVO> standbyChargers = evChargerClientNew.getEVChargers("ess-charge");    //대기 상태의 충전기 목록 - ESS 충전 가능 여부 확인을 위해 대기 상태인 EV 충전기 목록 호출
@@ -155,7 +171,7 @@ public class ControlUtil {
                 }
             } else {
                 System.out.println("EV 충전기 모두 충전 중 ESS 충전 불가!");
-            }
+            }*/
         }
 
         return powerValue;

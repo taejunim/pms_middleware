@@ -5,25 +5,26 @@ import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import pms.communication.external.switchboard.meter.PowerMeterClient;
+import pms.communication.web.WebSender;
+import pms.system.ess.ESSManager;
 import pms.vo.device.external.PowerMeterVO;
+import pms.vo.system.DeviceVO;
+
+import java.util.List;
+
 /**
- * packageName    : pms.scheduler.external.switchboard
- * fileName       : PowerMeterJob
- * author         : youyeong
- * date           : 2023/07/28
- * description    : EV충전기 전력계측기 통신 Job
- * ===========================================================
- * DATE              AUTHOR             NOTE
- * -----------------------------------------------------------
- * 2023/07/28        youyeong       최초 생성
+ * Power Meter Job
+ * <p>
+ * - 전력 계측기 Scheduler Job
  */
 public class PowerMeterJob implements Job {
     private final PowerMeterClient powerMeterClient = new PowerMeterClient();
+    private final WebSender webSender = new WebSender();
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
-        String meterCode      = (String) jobDataMap.get("meterCode");
+        String meterCode = (String) jobDataMap.get("meterCode");
         executeCommunication(meterCode);
     }
 
@@ -47,12 +48,21 @@ public class PowerMeterJob implements Job {
 
     private void executeRead(String meterCode) {
         PowerMeterVO powerMeterVO = powerMeterClient.read(meterCode);
-        //sendReadData(powerRelayVO);
+        sendReadData(meterCode, powerMeterVO);
+
+        ESSManager essManager = new ESSManager();
+        essManager.saveEVChargerPower(meterCode, powerMeterVO.getTotalApparentPower());
     }
 
     private void executeConnectionError(String meterCode) {
         PowerMeterVO powerMeterVO = powerMeterClient.readByError(meterCode);
-        //sendReadData(powerRelayVO);
+        sendReadData(meterCode, powerMeterVO);
     }
 
+    private void sendReadData(String meterCode, PowerMeterVO powerMeterVO) {
+        DeviceVO meterInfo = powerMeterClient.getMeterInfo(meterCode);
+        List<String> errorCodes = powerMeterClient.getErrorCodes(meterCode);
+
+        webSender.sendData(meterInfo, powerMeterVO, errorCodes);
+    }
 }

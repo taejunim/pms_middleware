@@ -30,9 +30,8 @@ public class BackupJob implements Job {
      */
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-
-        String rootPath = backupClient.FILE_PATH + backupClient.SLASH;
-
+        //String rootPath = backupClient.FILE_PATH + backupClient.SLASH;
+        String rootPath = backupClient.FILE_PATH + backupClient.SEPARATOR;
         List<Path> fileList = backupClient.getFileList(rootPath, new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date())); // 백업 실행하는 날이 매주 일요일 0시라서 당일 파일 제외해서 백업
 
         for (Path path : fileList) {

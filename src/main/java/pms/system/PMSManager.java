@@ -2,12 +2,18 @@ package pms.system;
 
 import pms.common.util.DateTimeUtil;
 import pms.common.util.ResourceUtil;
+import pms.communication.web.WebSender;
 import pms.database.ConnectionPool;
 import pms.database.query.ControlQuery;
 import pms.database.query.DeviceErrorQuery;
 import pms.database.query.DeviceQuery;
 import pms.database.query.SystemQuery;
+import pms.system.backup.BackupFile;
+import pms.system.ess.ControlUtil;
 import pms.system.ess.ESSScheduleManager;
+import pms.vo.device.control.ControlRequestVO;
+import pms.vo.device.control.ControlResponseVO;
+import pms.vo.history.ControlHistoryVO;
 import pms.vo.system.*;
 
 import java.util.*;
@@ -38,6 +44,72 @@ public class PMSManager {
         setDeviceInfo();
         setDeviceControlCode();
         setDeviceErrorCode();
+    }
+
+    /**
+     * 시스템 정보 재설정
+     *
+     * @param requestVO 제어 요청 정보
+     */
+    public void resetSystemInfo(ControlRequestVO requestVO) {
+        ControlResponseVO responseVO = null;
+
+        try {
+            String controlType = requestVO.getControlType();
+
+            switch (controlType) {
+                case "9000":
+                    setDeviceControlCode();
+                    break;
+                case "9001":
+                    setOperationConfig();
+                    break;
+                case "9002":
+                    setOperationSchedule();
+                    System.out.println(ESSScheduleManager.schedules);
+                    System.out.println("=======================================");
+                    System.out.println(ESSScheduleManager.schedulesMap);
+                    break;
+                case "9098":
+                case "9099":
+                    setESS();
+                    break;
+            }
+
+            int address = requestVO.getAddress();
+            short value = (short) requestVO.getControlValue();
+
+            responseVO = ControlUtil.setControlResponseVO(address, value, requestVO);
+            sendControlResponse(responseVO);    //제어 응답 전송
+        } catch (Exception e) {
+            responseVO = ControlUtil.setControlResponseVO(0, (short) 0, requestVO);
+            sendControlResponse(responseVO);    //제어 응답 전송
+
+            e.printStackTrace();
+        } finally {
+            if (responseVO != null) {
+                ControlHistoryVO controlHistoryVO = responseVO.getHistoryVO();
+                insertControlHistory(controlHistoryVO);
+            }
+        }
+    }
+
+    private void insertControlHistory(ControlHistoryVO controlHistoryVO) {
+        ControlQuery controlQuery = new ControlQuery();
+        int result = controlQuery.insertControlHistory(controlHistoryVO);
+
+        if (result > 0) {
+            new BackupFile().backupData("control", null, controlHistoryVO);
+        }
+    }
+
+    private void sendControlResponse(ControlResponseVO responseVO) {
+        int result = responseVO.getResult();
+        String remoteId = responseVO.getRequestVO().getRemoteId();
+        String pcsCode = responseVO.getRequestVO().getDeviceCode();
+        String controlCode = responseVO.getRequestVO().getControlCode();
+
+        new WebSender().sendResponse(remoteId, pcsCode, controlCode, result, "");  //제어응답전송수정
     }
 
     private void setESS() {

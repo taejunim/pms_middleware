@@ -14,18 +14,15 @@ import lombok.Data;
  */
 @Data
 public class PowerMeterVO {
-
     private String meterCode;
     private int    regDate;
     private String status;                      //Meter 상태
-
     private float rPhaseCurrent;
     private float sPhaseCurrent;
     private float tPhaseCurrent;
     private float nPhaseCurrent;
     private float gPhaseCurrent;
     private float averagePhaseCurrent;
-
     private float rsLineVoltage;
     private float stLineVoltage;
     private float trLineVoltage;
@@ -34,7 +31,6 @@ public class PowerMeterVO {
     private float sPhaseVoltage;
     private float tPhaseVoltage;
     private float averagePhaseVoltage;
-
     private float rPhaseActivePower;
     private float sPhaseActivePower;
     private float tPhaseActivePower;
@@ -47,14 +43,11 @@ public class PowerMeterVO {
     private float sPhaseApparentPower;
     private float tPhaseApparentPower;
     private float totalApparentPower;
-
     private float rPhasePowerFactor;
     private float sPhasePowerFactor;
     private float tPhasePowerFactor;
     private float totalPowerFactor;
-
     private float frequency;
-
     private long deliveredActiveEnergy;
     private long receivedActiveEnergy;
     private long deliveredReactiveEnergy;

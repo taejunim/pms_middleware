@@ -31,7 +31,7 @@ import java.util.*;
 public class PowerMeterClient {
     private final PowerMeterScheduler powerMeterScheduler = new PowerMeterScheduler();
     public static final Properties deviceProperties = ResourceUtil.loadProperties("device");  //device.properties
-    private static Map<String, ModbusSerialMaster> connections = new HashMap<>();   //미터기별 connection 정보 갖고 있는 map
+    private static final Map<String, ModbusSerialMaster> connections = new HashMap<>();   //미터기별 connection 정보 갖고 있는 map
     private static final Map<String, DeviceVO> powerMeterInfoMap = new HashMap<>(); //Rack 장비 정보
     private static Map<String, List<PowerMeterVO.RequestItem>> requestItemsMap = new HashMap<>();   //수신 요청 아이템 Map
     private static final Map<String, List<String>> previousErrorCodesMap = new HashMap<>();
@@ -52,6 +52,14 @@ public class PowerMeterClient {
             requestItemsMap = new PowerMeterReadItem().getRequestItems();
             executeScheduler(deviceVO.getDeviceCode());
         }
+    }
+
+    public DeviceVO getMeterInfo(String meterCode) {
+        return powerMeterInfoMap.get(meterCode);
+    }
+
+    public List<String> getErrorCodes(String meterCode) {
+        return previousErrorCodesMap.get(meterCode);
     }
 
     private void setConnection(DeviceVO deviceVO) {
@@ -154,7 +162,7 @@ public class PowerMeterClient {
 
     private boolean insertErrorData(List<DeviceErrorVO> errors, String deviceCode) {
         DeviceErrorQuery deviceErrorQuery = new DeviceErrorQuery();
-        int result = deviceErrorQuery.insertDeviceError(errors);
+        int result = deviceErrorQuery.insertDeviceErrors(errors);
 
         if (result > 0) {
             new BackupFile().backupData("device-error", powerMeterInfoMap.get(deviceCode).getDeviceCode(), errors);
@@ -174,7 +182,6 @@ public class PowerMeterClient {
 
     private boolean containsErrors(String meterCode, List<String> currentErrorCodes) {
         if (previousErrorCodesMap.containsKey(meterCode)) {
-            System.out.println("Meter " + meterCode + " 이전 오류 코드 : " + previousErrorCodesMap.get(meterCode) + " / 현재 오류 코드 : " + currentErrorCodes);
             return new HashSet<>(previousErrorCodesMap.get(meterCode)).containsAll(currentErrorCodes);
         } else {
             previousErrorCodesMap.put(meterCode, currentErrorCodes);

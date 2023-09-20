@@ -3,10 +3,13 @@ package pms;
 import pms.communication.CommunicationManager;
 import pms.scheduler.CommonScheduler;
 import pms.system.PMSManager;
-import pms.system.backup.BackupClient;
 import pms.system.ess.ESSController;
 import pms.system.ess.ESSScheduleManager;
 import pms.vo.system.PmsVO;
+
+import java.util.ArrayList;
+import java.util.DoubleSummaryStatistics;
+import java.util.List;
 
 public class Main {
     /**
@@ -15,6 +18,26 @@ public class Main {
      * @param args Arguments
      */
     public static void main(String[] args) {
+        /*float totalApparentPower = (float) 0.233318;
+
+        if (totalApparentPower > 0.1) {
+            System.out.println((Math.ceil(totalApparentPower * 10) / 10.0));
+        } else {
+            System.out.println((Math.round(totalApparentPower * 10) / 10.0));
+        }
+
+
+        float chargerPower = (float) (Math.ceil(totalApparentPower * 10) / 10.0);
+
+        float test2 = Math.round(totalApparentPower * 100);
+
+        float test1 = (float) (Math.round(totalApparentPower * 10) / 10.0);
+
+        System.out.println("[전력 계측기] 총 피상 전력 = " + test1);
+        System.out.println("[전력 계측기] 총 피상 전력 = " + Math.ceil(test1 * 10) / 10.0);
+        System.out.println("[전력 계측기] 총 피상 전력 = " + Math.ceil(test1 * 100) / 100.0);
+        System.out.println("[전력 계측기] 충전기 소비 전력 = " + chargerPower);*/
+
         new PMSManager().initSystem();
         new CommonScheduler().startScheduler();
 
@@ -38,6 +61,7 @@ public class Main {
         CommunicationManager communication = new CommunicationManager();
 
         communication.executeWebsocket();
+        communication.executeBackup();
         communication.executeDevice();
     }
 }

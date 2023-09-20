@@ -57,13 +57,6 @@ public class PMSCode {
             return null;
     }
 
-    public static String getCommonErrorName(String key) {
-        if (PmsVO.commonErrorCodes.containsKey(key))
-            return PmsVO.commonErrorCodes.get(key).getErrorCodeName();
-        else
-            return null;
-    }
-
     public static String getBMSErrorCode(String key) {
         if (PmsVO.bmsErrorCodes.containsKey(key))
             return PmsVO.bmsErrorCodes.get(key).getErrorCode();
@@ -71,23 +64,9 @@ public class PMSCode {
             return null;
     }
 
-    public static String getBMSErrorName(String key) {
-        if (PmsVO.bmsErrorCodes.containsKey(key))
-            return PmsVO.bmsErrorCodes.get(key).getErrorCodeName();
-        else
-            return null;
-    }
-
     public static String getPCSErrorCode(String key) {
         if (PmsVO.pcsErrorCodes.containsKey(key))
             return PmsVO.pcsErrorCodes.get(key).getErrorCode();
-        else
-            return null;
-    }
-
-    public static String getPCSErrorName(String key) {
-        if (PmsVO.pcsErrorCodes.containsKey(key))
-            return PmsVO.pcsErrorCodes.get(key).getErrorCodeName();
         else
             return null;
     }

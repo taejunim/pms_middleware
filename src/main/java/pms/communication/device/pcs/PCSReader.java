@@ -23,6 +23,7 @@ public class PCSReader {
     private List<PcsVO.RequestItem> requestItems;
     private final PcsVO pcsVO = new PcsVO();
     private final List<DeviceErrorVO> pcsErrors = new ArrayList<>();
+    private DeviceErrorVO commonError = new DeviceErrorVO();
 
     public PCSReader(DeviceVO pcsInfo) {
         this.unitId = pcsInfo.getDeviceNo();
@@ -78,8 +79,8 @@ public class PCSReader {
             String operationMode = pcsVO.getOperationModeStatus();
             float outputPower = pcsVO.getOutputPower();
 
-            boolean isChargeMode = (operationMode.equals("1") && outputPower <= 2.0);
-            boolean isDischargeMode = (operationMode.equals("2") && outputPower >= -2.0);
+            boolean isChargeMode = (operationMode.equals("1") && outputPower <= 2.0);   //충전 모드 판단(영점 조절)
+            boolean isDischargeMode = (operationMode.equals("2") && outputPower >= -2.0);   //방전 모드 판단(영점 조절)
 
             if (isChargeMode || isDischargeMode) {
                 pcsVO.setOperationModeStatus("0");
@@ -88,6 +89,10 @@ public class PCSReader {
             /*if ((pcsVO.getOutputPower() <= 2.0 && pcsVO.getOperationModeStatus().equals("1"))) {
                 pcsVO.setOperationModeStatus("0");
             }*/
+        }
+
+        if (pcsVO.getWarningFlag() == null) {
+            pcsVO.setWarningFlag("N");
         }
 
         return pcsVO;
@@ -119,11 +124,25 @@ public class PCSReader {
         pcsVO.setFaultFlag("N");
 
         String errorCode = PMSCode.getCommonErrorCode(errorCodeKey);
-        setPcsErrors(errorCode);
+        //setPcsErrors(errorCode);
+        commonError = setErrorVO(errorCode);
+    }
+
+    public DeviceErrorVO getCommonError() {
+        return commonError;
     }
 
     public List<DeviceErrorVO> getPcsErrors() {
         return pcsErrors;
+    }
+
+    private DeviceErrorVO setErrorVO(String errorCode) {
+        DeviceErrorVO deviceErrorVO = new DeviceErrorVO();
+        deviceErrorVO.setErrorDate(pcsVO.getRegDate());
+        deviceErrorVO.setDeviceCode(pcsVO.getPcsCode());
+        deviceErrorVO.setErrorCode(errorCode);
+
+        return deviceErrorVO;
     }
 
     private void setPcsErrors(String errorCode) {
@@ -263,7 +282,10 @@ public class PCSReader {
                 String faultCode = faultType + String.format("%02d", 15 - i);
                 String errorCode = PMSCode.getPCSErrorCode(faultCode);
 
-                setPcsErrors(errorCode);
+                //setPcsErrors(errorCode);
+
+                DeviceErrorVO errorVO = setErrorVO(errorCode);
+                pcsErrors.add(errorVO);
             }
         }
     }

@@ -40,7 +40,7 @@ public class CommunicationManager {
 
         if (essType.equals("01")) {
             executePCS();
-            executePowerRelay();
+            //executePowerRelay();
             executePowerMeter();
         } else if (essType.equals("02")) {
             executeConverter();
@@ -48,6 +48,9 @@ public class CommunicationManager {
         }
     }
 
+    /**
+     * BMS 통신 실행
+     */
     private void executeBMS() {
         BMSClient bmsClient = new BMSClient();
 
@@ -57,6 +60,9 @@ public class CommunicationManager {
         }
     }
 
+    /**
+     * PCS 통신 실행
+     */
     private void executePCS() {
         PCSClient pcsClient = new PCSClient();
         pcsClient.execute();
