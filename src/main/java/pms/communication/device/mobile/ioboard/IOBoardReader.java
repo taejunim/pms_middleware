@@ -36,21 +36,8 @@ public class IOBoardReader {
      */
     public int request() {
         int regDate = DateTimeUtil.getUnixTimestamp();
-
         int[] inputData = getInputReadData();    //보드 Input 포트 정보 호출
         int[] outputData = getOutputReadData();   //보드 Output 포트 정보 호출
-
-        //!!! TEST Log
-//        System.err.print("inputData: ");
-//        for (int i : inputData) {
-//            System.err.print((char) i);
-//        }
-//        System.out.println("");
-//        System.err.print("outputData: ");
-//        for (int j : outputData) {
-//            System.err.print((char) j);
-//        }
-
 
         if (inputData != null) {
             for (Map.Entry<Integer, String> entry : IOBoardClient.inputDeviceCodeMap.entrySet()) {
@@ -75,10 +62,6 @@ public class IOBoardReader {
         } else {
             setOutputReadDataByError(PMSCode.getCommonCode("DEVICE_STATUS_96"), "01008", regDate);
         }
-
-//        System.out.println(sensorDataMap);  //!!!
-//        System.out.println(airConditionerDataMap);  //!!!
-
 
         return regDate;
     }

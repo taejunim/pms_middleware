@@ -24,10 +24,10 @@ public class IOBoardWriter {
     }
 
     /**
-     * Request
+     * ControlRequestVO
      * 제어 처리
      *
-     * @param requestVO - 제어정보
+     * @param requestVO - 제어 정보
      */
     public void request(ControlRequestVO requestVO) {
         int requestAddress = requestVO.getAddress();
@@ -35,15 +35,16 @@ public class IOBoardWriter {
 
         String reqString = getRequestString(requestAddress, controlValue);
         ioBoardCommunication.sendRequest(reqString);
+
         try {
-            Thread.sleep(50);
+            Thread.sleep(50);   // 제어 통신 후 유휴 시간(없을 경우 하단 ioBoardCommunication.getResponseData() 문제 발생)
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
 
         setResult(controlValue, ioBoardCommunication.getResponseData());
 
-        if (result == 1) {  //!!! 제어 응답값 처리 하는거 확인하고 더 구현해야됨.
+        if (result == 1) {  //!!! 확인 필요.
             responseVO = ControlUtil.setControlResponseVO(requestAddress, (short) controlValue, requestVO);
         } else {
             responseVO = ControlUtil.setControlResponseVO(0, (short) controlValue, requestVO);
@@ -51,10 +52,39 @@ public class IOBoardWriter {
     }
 
     /**
+     * ControlRequestVO 아닌 String으로 제어 명령 전송용
+     *
+     * @param dataString - STX, CRC, ETX 제외한 제어 명령어 (Ex.H0011111111, L0011111111 > H or L ON/OFF명령어, 10개 이진수 = 제어 장비), 프로토콜 참조
+     */
+    public void request(String dataString) {
+        String data = dataString;
+        String crc = makeCrc("!" + data);   // "!" > Data write 명령어 STX
+        ioBoardCommunication.sendRequest("!" + data + crc + "\r\n");    // "\r\n" > ETX
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if (dataString.charAt(0) == 'H') {
+            setResult(1, ioBoardCommunication.getResponseData());   // controlValue : 1 > ON(H)
+        } else if (dataString.charAt(0) == 'L') {
+            setResult(0, ioBoardCommunication.getResponseData());   // controlValue : 0 > OFF(L)
+        }
+
+        /*if (result == 1) {  //!!!IO보드 - 제어 응답 처리부분 - 웹에서 전달된 Request 없음. 필요시 구현 필요.
+            responseVO = ControlUtil.setControlResponseVO(requestAddress, (short) controlValue, requestVO);
+        } else {
+            responseVO = ControlUtil.setControlResponseVO(0, (short) controlValue, requestVO);
+        }*/
+    }
+
+
+    /**
      * Get Result
      * 제어 결과 반환
      *
-     * @return  - 1:성공, 0:실패
+     * @return - 1:성공, 0:실패
      */
     public int getResult() {
         return result;
@@ -64,7 +94,7 @@ public class IOBoardWriter {
      * Get ResponseVO
      * 제어 응답 VO 반환
      *
-     * @return  ControlResponseVO
+     * @return ControlResponseVO
      */
     public ControlResponseVO getResponseVO() {
         return responseVO;
@@ -74,8 +104,8 @@ public class IOBoardWriter {
      * Set Result
      * 제어 응답 데이터에 따른 결과값 Set
      *
-     * @param controlValue  - 1:운전, 0:정지
-     * @param response      - 응답 데이터
+     * @param controlValue - 1:운전, 0:정지
+     * @param response     - 응답 데이터
      */
     private void setResult(int controlValue, int[] response) {
         result = 0; //실패
@@ -97,6 +127,13 @@ public class IOBoardWriter {
     }
 
 
+    /**
+     * ControlRequestVO에 address 와 controlValue 에 따른 제어 명령어 생성
+     *
+     * @param requestAddress
+     * @param controlValue
+     * @return requestString
+     */
     private String getRequestString(int requestAddress, int controlValue) {
         String requestString = null;
         String stx = "!";

@@ -197,7 +197,6 @@ public class DeviceQuery {
         String values = QueryUtil.createInsertValue(airConditionerData);
         sql.append(values);
 
-        System.out.println("!!!" + sql.toString());
         return sqlSession.insert(sql.toString());
     }
 

@@ -15,7 +15,6 @@ public class IOBoardCommunication {
     private SerialPort serialPort;  //통신 정보
     private boolean isReading;  //읽기 진행 상태
     private int[] responseData; //통신 응답값
-    private List<Integer> responseDataList = new ArrayList<>();
 
     /**
      * Set Connection
@@ -76,11 +75,6 @@ public class IOBoardCommunication {
         }
 
         int[] responseData = toIntList(responseList);    //ArrayList -> int[]
-
-        System.out.println("!!! 제어 응답값: ");
-        for (int i : responseData) {
-            System.out.print((char) i);     //!!! 제어 응답값
-        }
 
         if (!checkCrc(responseData)) {        //CRC 확인
             responseData = null;

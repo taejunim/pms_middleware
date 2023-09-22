@@ -38,6 +38,6 @@ public class IOBoardScheduler {
         jobDataMap.put("triggerName", "IOBoardTrigger");
 
         JobDetail jobDetail = CommonScheduler.buildJobDetail(IOBoardJob.class, jobDataMap);
-        scheduler.scheduleJob(jobDetail, CommonScheduler.buildTrigger(2, jobDataMap));
+        scheduler.scheduleJob(jobDetail, CommonScheduler.buildTrigger(1, jobDataMap));
     }
 }

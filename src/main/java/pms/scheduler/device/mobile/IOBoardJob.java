@@ -1,5 +1,6 @@
 package pms.scheduler.device.mobile;
 
+import  org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -7,7 +8,6 @@ import pms.communication.device.mobile.ioboard.IOBoardClient;
 import pms.communication.web.WebSender;
 import pms.vo.device.AirConditionerVO;
 import pms.vo.device.SensorVO;
-import pms.vo.device.control.ControlRequestVO;
 import pms.vo.device.control.ControlResponseVO;
 import pms.vo.device.error.DeviceErrorVO;
 import pms.vo.system.DeviceVO;
@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@DisallowConcurrentExecution
 public class IOBoardJob implements Job {
     private IOBoardClient ioBoardClient = new IOBoardClient();
     private WebSender webSender = new WebSender();
@@ -30,6 +31,9 @@ public class IOBoardJob implements Job {
         if (ioBoardClient.isConnected()) {
             try {
                 if (!ioBoardClient.isControlRequest()) {
+                    if (!ioBoardClient.getFanPowerState()) {
+                        executeFanPowerOn();
+                    }
                     executeRead();
                 } else {
                     executeControl();
@@ -62,9 +66,9 @@ public class IOBoardJob implements Job {
         String remoteId = responseVO.getRequestVO().getRemoteId();
         String deviceCode = responseVO.getRequestVO().getDeviceCode();
         String controlCode = responseVO.getRequestVO().getControlCode();
+        int result = responseVO.getResult();
 
-        webSender.sendResponse(remoteId, deviceCode, controlCode, responseVO.getResult(), "");  //제어응답전송수정
-        //webSender.sendResponse(responseVO.getRequestVO().getRemoteId(), "control", responseVO.getResult());
+        webSender.sendResponse(remoteId, deviceCode, controlCode, result, "");
     }
 
     private void executeConnectionError() {
@@ -77,9 +81,6 @@ public class IOBoardJob implements Job {
     private void sendAllReadData(Map<String, SensorVO> sensorsData, Map<String, AirConditionerVO> airConditionersData) {
         Map<String, DeviceErrorVO> sensorErrorCodeMap = ioBoardClient.getSensorErrorDataMap();
         Map<String, DeviceErrorVO> airConditionerErrorCodeMap = ioBoardClient.getAirConditionerErrorDataMap();
-
-//        System.err.println(sensorErrorCodeMap);     //!!!
-//        System.err.println(airConditionersData);    //!!!
 
         for (Map.Entry<String, SensorVO> entry : sensorsData.entrySet()) {
             DeviceVO sensorInfo = ioBoardClient.getSensorDeviceVosMap().get(entry.getKey());
@@ -100,5 +101,12 @@ public class IOBoardJob implements Job {
             }
             webSender.sendData(airConditionerInfo, entry.getValue(), errCodes);
         }
+    }
+
+    /**
+     * 흡기&배기 팬 전원 ON
+     */
+    private void executeFanPowerOn() {
+        ioBoardClient.powerOnFans();
     }
 }

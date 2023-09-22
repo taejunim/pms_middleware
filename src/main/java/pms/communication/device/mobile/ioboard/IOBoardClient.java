@@ -10,6 +10,7 @@ import pms.database.query.DeviceErrorQuery;
 import pms.database.query.DeviceQuery;
 import pms.scheduler.device.mobile.IOBoardScheduler;
 import pms.system.PMSCode;
+import pms.system.backup.BackupFile;
 import pms.vo.device.AirConditionerVO;
 import pms.vo.device.SensorVO;
 import pms.vo.device.control.ControlRequestVO;
@@ -19,8 +20,6 @@ import pms.vo.history.ControlHistoryVO;
 import pms.vo.system.DeviceVO;
 import pms.vo.system.PmsVO;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.*;
 
 import static pms.communication.CommunicationManager.deviceProperties;
@@ -39,6 +38,8 @@ public class IOBoardClient {
     private static Map<String, DeviceErrorVO> airConditionerErrorsMap = new HashMap<>();
     private static int previousDBInsertRegDate = 0;
     private static int previousRegDate = 0;
+    private static boolean fanPower = false;        // 흡배기 팬 전원 On 상태 여부
+
     private static Map<String, DeviceErrorVO> previousSensorErrorsMap = new HashMap<>();
     private static Map<String, DeviceErrorVO> previousAirConditionerErrorsMap = new HashMap<>();
     private static Map<String, SensorVO> previousSensorDataMap = new HashMap<>();
@@ -77,17 +78,9 @@ public class IOBoardClient {
      * @throws Exception
      */
     public void connect() throws Exception {
-        //!!! 포트 리스트 확인 코드
-        /*String[] portNameList = SerialPortList.getPortNames();
-        for (String s : portNameList) {
-            System.out.println(s);
-        }*/
         serialPort = new SerialPort(deviceProperties.getProperty("ioBoard.port"));
         serialPort.openPort();
         serialPort.setParams(SerialPort.BAUDRATE_38400, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
-
-        System.out.println(deviceProperties.getProperty("ioBoard.port"));
-        System.out.println("!!! port " + serialPort.isOpened());
     }
 
 
@@ -246,12 +239,12 @@ public class IOBoardClient {
         DeviceErrorQuery deviceErrorQuery = new DeviceErrorQuery();
         int result = deviceErrorQuery.insertDeviceErrors(errorVOList);
 
-        //!!! 파일 백업 구현 필
-        /*if (result > 0) {
-            for (DeviceErrorVO deviceErrorVO : errorsData) {
-                new BackupFile().backupData("device-error", deviceErrorVO.getDeviceCode(), );
+        //!!! 파일 백업
+        if (result > 0) {
+            for (Map.Entry<String, DeviceErrorVO> entry : errorDataMap.entrySet()) {
+                new BackupFile().backupData("device-error", entry.getValue().getDeviceCode(), entry.getValue());
             }
-        }*/
+        }
         return result > 0;
     }
 
@@ -270,12 +263,12 @@ public class IOBoardClient {
         DeviceQuery deviceQuery = new DeviceQuery();
         int result = deviceQuery.insertSensorsData(sensorVOList);
 
-        //!!! 파일 백업 나중에 구현
-        /*if (result > 0){
-            for (SensorVO sensorVO : sensorsData) {
-                new BackupFile().backupData("device", sensorVO.getSensorCode(), sensorVO);
+        //!!! 파일 백업
+        if (result > 0) {
+            for (Map.Entry<String, SensorVO> entry : sensorDataMap.entrySet()) {
+                new BackupFile().backupData("device", entry.getValue().getSensorCode(), entry.getValue());
             }
-        }*/
+        }
         return result > 0;
     }
 
@@ -294,12 +287,12 @@ public class IOBoardClient {
         DeviceQuery deviceQuery = new DeviceQuery();
         int result = deviceQuery.insertAirConditionersData(airConditionerVOList);
 
-        //!!! 파일 백업 나중에 구현
-        /*if (result > 0){
-            for (AirConditionerVO airConditionerVO : airConditionersData) {
-                new BackupFile().backupData("device", airConditionerVO.getAirConditionerCode(), airConditionerVO);
+        //!!! 파일 백업
+        if (result > 0) {
+            for (Map.Entry<String, AirConditionerVO> entry : airConditionerDataMap.entrySet()) {
+                new BackupFile().backupData("device", entry.getValue().getAirConditionerCode(), entry.getValue());
             }
-        }*/
+        }
         return result > 0;
     }
 
@@ -416,7 +409,6 @@ public class IOBoardClient {
      * @return - 제어 응답 VO
      */
     public ControlResponseVO control() {
-        System.out.println("!!! 제어 시작: " + controlRequest);
         IOBoardWriter ioBoardWriter = new IOBoardWriter();
         ioBoardWriter.setConnection(serialPort);
         ioBoardWriter.request(controlRequest);
@@ -428,21 +420,24 @@ public class IOBoardClient {
             controlQuery.insertControlHistory(controlHistoryVO);
 
             processWriteErrorData(controlHistoryVO);    // 제어 성공 여부에 따른 에러처리
+
+            //!!!IO보드 제어 백업 - 디바이스 코드 맞게 들어가는지 확인 필요
+            if (controlQuery.insertControlHistory(controlHistoryVO) > 0) {
+                new BackupFile().backupData("control", responseVO.getRequestVO().getDeviceCode(), controlHistoryVO);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        //!!!데이터 백업
-        /*if (controlQuery.insertControlHistory(controlHistoryVO) > 0) {
-            String deviceCode = null;
-            new BackupFile().backupData("control", responseVO.getRequestVO().getDeviceCode(), controlHistoryVO);    //!!!디바이스 코드 확인 필요
-        }*/
-
         controlRequest = null;
 
         return responseVO;
     }
 
+    /**
+     * 제어 에러 처리
+     *
+     * @param controlHistoryVO
+     */
     private void processWriteErrorData(ControlHistoryVO controlHistoryVO) {
         if (controlHistoryVO.getControlCompleteFlag().equals("N")) {
             DeviceErrorVO errorVO = new DeviceErrorVO();
@@ -493,13 +488,13 @@ public class IOBoardClient {
     }
 
     /**
-     * 초기 IOBoard 연결된 장비 정보 설정
+     * 초기 IOBoard 연결된 장비 정보 설정.
+     * 장비 주소 변경시 수정 필요함.
      */
     private void setInfo() {
-        //!!! 디바이스 코드 맵핑 확인 후 수정 필요
         sensorDeviceVosMap.put("040401", PmsVO.sensors.get(PMSCode.getCommonCode("DEVICE_CATEGORY_SUB_0404")).get(0));
         sensorDeviceVosMap.put("040402", PmsVO.sensors.get(PMSCode.getCommonCode("DEVICE_CATEGORY_SUB_0404")).get(1));
-//        sensorDeviceVosMap.put("040403", PmsVO.sensors.get(PMSCode.getCommonCode("DEVICE_CATEGORY_SUB_0404")).get(2));
+//        sensorDeviceVosMap.put("040403", PmsVO.sensors.get(PMSCode.getCommonCode("DEVICE_CATEGORY_SUB_0404")).get(2));    //0404-도어-외부
         airConditionerDeviceVosMap.put("800201", PmsVO.airConditioners.get(PMSCode.getCommonCode("DEVICE_CATEGORY_SUB_8002")).get(0));
         airConditionerDeviceVosMap.put("800202", PmsVO.airConditioners.get(PMSCode.getCommonCode("DEVICE_CATEGORY_SUB_8002")).get(1));
         airConditionerDeviceVosMap.put("801101", PmsVO.airConditioners.get(PMSCode.getCommonCode("DEVICE_CATEGORY_SUB_8011")).get(0));
@@ -545,15 +540,53 @@ public class IOBoardClient {
         return airConditionerDeviceVosMap;
     }
 
+    /**
+     * 전체 흡배기 팬 전원 ON.
+     * 흡배기 맵핑 변경시 request 명령어(하드코딩) 수정 필요함.
+     */
+    public void powerOnFans() {
+        IOBoardWriter ioBoardWriter = new IOBoardWriter();
+        ioBoardWriter.setConnection(serialPort);
+        ioBoardWriter.request("H0011110000");   // 명령어 프로토콜 참조
+
+        if (ioBoardWriter.getResult() == 1) {
+            fanPower = true;
+        } else {
+            fanPower = false;
+        }
+
+        //!!! IO보드 - 최초 시작시 흡/배기팬 전원 제어 백업 파일 부분 구현 필요
+        /*ControlResponseVO responseVO = ioBoardWriter.getResponseVO();
+        try {
+            ControlHistoryVO controlHistoryVO = responseVO.getHistoryVO();
+            ControlQuery controlQuery = new ControlQuery();
+            controlQuery.insertControlHistory(controlHistoryVO);
+
+            processWriteErrorData(controlHistoryVO);    // 제어 성공 여부에 따른 에러처리
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
+
+        controlRequest = null;
+    }
 
     /**
-     * !!! Test Connect IOBoard
+     * getFanPowerState
+     *
+     * @return
+     */
+    public boolean getFanPowerState() {
+        return fanPower;
+    }
+
+    /**
+     * !!! Test Connect IOBoard - 테스트용
      * <p>
      * 수동 포트 입력 후 연결
      */
-    private void testConnect(){
+    private void testConnect() {
         String[] portNameList = SerialPortList.getPortNames();
-        System.out.println("+++++++++++++++++++++++++++++++");
+        System.out.println("+++++++++++PORT LIST+++++++++++");
         for (String s : portNameList) {
             System.out.println(s);
         }
@@ -573,10 +606,9 @@ public class IOBoardClient {
     }
 
     /**
-     * Test execute
+     * IO 보드 테스트용 코드 실행부분
      */
     public void testControlExecute() {
-
         try {
             Boolean isOpened = false;
             while (!isOpened) {
@@ -589,7 +621,6 @@ public class IOBoardClient {
         } finally {
             while (serialPort.isOpened()) {
                 ControlRequestVO requestVO = new ControlRequestVO();
-
                 Scanner scanner;
                 requestVO.setAddress(99);
                 while (requestVO.getAddress() == 99) {
@@ -618,8 +649,7 @@ public class IOBoardClient {
                         System.err.println("제어 명령어 오기입! 다시!");
                     }
                 }
-
-                System.out.println("!!! 제어 시작: " + requestVO);
+                System.out.println("--- 제어 시작: " + requestVO);
                 IOBoardWriter ioBoardWriter = new IOBoardWriter();
                 ioBoardWriter.setConnection(serialPort);
                 ioBoardWriter.request(requestVO);
@@ -631,7 +661,5 @@ public class IOBoardClient {
                 }
             }
         }
-
     }
-
 }
