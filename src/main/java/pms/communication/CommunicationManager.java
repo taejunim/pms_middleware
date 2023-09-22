@@ -1,6 +1,7 @@
 package pms.communication;
 
 import pms.common.util.ResourceUtil;
+import pms.communication.device.airconditioner.AirConditionerClient;
 import pms.communication.device.bms.BMSClient;
 import pms.communication.device.converter.ConverterClient;
 import pms.communication.device.mobile.ioboard.IOBoardClient;
@@ -13,6 +14,8 @@ import pms.vo.system.DeviceVO;
 import pms.vo.system.PmsVO;
 
 import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 public class CommunicationManager {
@@ -42,6 +45,7 @@ public class CommunicationManager {
             executePCS();
             //executePowerRelay();
             executePowerMeter();
+            executeAirConditioner();
         } else if (essType.equals("02")) {
             executeConverter();
             executeIOBoard();
@@ -88,6 +92,17 @@ public class CommunicationManager {
 
         for (DeviceVO rackVO : PmsVO.meters.get("0502")) {
             powerMeterClient.execute(rackVO);
+        }
+    }
+
+    private void executeAirConditioner() {
+        AirConditionerClient airConditionerClient = new AirConditionerClient();
+
+        for (Map.Entry<String, List<DeviceVO>> airConditionerMap : PmsVO.airConditioners.entrySet()) {
+            for (DeviceVO airConditionerVO : airConditionerMap.getValue()) {
+                String airConditionerDeviceCode = airConditionerVO.getDeviceCode();
+                airConditionerClient.execute(airConditionerDeviceCode, airConditionerVO);
+            }
         }
     }
 }

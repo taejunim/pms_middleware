@@ -3,6 +3,7 @@ package pms.communication.web;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import pms.communication.device.airconditioner.AirConditionerClient;
 import pms.communication.device.bms.BMSClient;
 import pms.communication.device.converter.ConverterClient;
 import pms.communication.device.mobile.ioboard.IOBoardClient;
@@ -82,7 +83,6 @@ public class WebReceiver extends WebClient {
             case "8001":
             case "8002":
                 List<DeviceVO> airConditioners = PmsVO.airConditioners.get(categorySub);
-
                 for (DeviceVO airConditioner : airConditioners) {
                     if (airConditioner.getDeviceCode().equals(deviceCode)) {
                         isCheck = true;
@@ -231,11 +231,11 @@ public class WebReceiver extends WebClient {
         }
     }
 
-    private void requestAirConditioner(String deviceCode, ControlRequestVO requestVO) { //!!!
+    private void requestAirConditioner(String deviceCode, ControlRequestVO requestVO) {
         //ESS 유형 별 공조장치 제어(01: 고정형, 02: 이동형)
         if (ESS_TYPE.equals("01")) {
-            /*AirConditionerClient airConditionerClient = new AirConditionerClient();
-            airConditionerClient.setControlRequestMap(deviceCode, requestVO);*/
+            AirConditionerClient airConditionerClient = new AirConditionerClient();
+            airConditionerClient.setControlRequestMap(deviceCode, requestVO);
         } else if (ESS_TYPE.equals("02")) {
             IOBoardClient ioBoardClient = new IOBoardClient();
             ioBoardClient.setControlRequest(requestVO);
