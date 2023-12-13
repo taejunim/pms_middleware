@@ -71,6 +71,7 @@ public class SystemQuery {
      */
     public EssVO getESS() {
         String sql = "SELECT ESS_CODE, " +
+                "ESS_NAME, " +
                 "ESS_TYPE, " +
                 "CONTRACT_POWER, " +
                 "TOTAL_BATTERY_ENERGY, " +
@@ -83,7 +84,14 @@ public class SystemQuery {
         return sqlSession.selectOne(sql, EssVO.class);
     }
 
-    public int updateESS(String totalCharge, String totalDischarge) {
+    /**
+     * ESS 총 전력량 정보 갱신
+     *
+     * @param totalCharge    총 충전 전력량
+     * @param totalDischarge 총 방전 전력량
+     * @return 갱신 결과
+     */
+    public int updateTotalEnergy(String totalCharge, String totalDischarge) {
         String sql = "UPDATE BASE_ESS " +
                 "SET " +
                 "TOTAL_CHARGE = '" + totalCharge + "', " +
@@ -94,6 +102,12 @@ public class SystemQuery {
         return sqlSession.update(sql);
     }
 
+    /**
+     * ESS 환경설정 정보 조회
+     *
+     * @param deviceCategorySub 장비 하위 분류 코드
+     * @return ESS 환경설정 정보 목록
+     */
     public List<EssVO.ConfigVO> getOperationConfig(String deviceCategorySub) {
         String sql = "SELECT DEVICE.DEVICE_CATEGORY_SUB, " +
                 "CONFIG.DEVICE_CODE, " +
@@ -109,6 +123,12 @@ public class SystemQuery {
         return sqlSession.selectList(sql, EssVO.ConfigVO.class);
     }
 
+    /**
+     * ESS 환경설정 정보 조회
+     *
+     * @param deviceCategorySub 장비 하위 분류 코드
+     * @return ESS 환경설정 정보 Map
+     */
     public Map<Object, EssVO.ConfigVO> getOperationConfigMap(String deviceCategorySub) {
         String sql = "SELECT DEVICE.DEVICE_CATEGORY_SUB, " +
                 "CONFIG.DEVICE_CODE, " +

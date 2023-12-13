@@ -8,7 +8,6 @@ import pms.system.backup.BackupFile;
 import pms.vo.device.BmsVO;
 import pms.vo.device.PcsVO;
 import pms.vo.history.EnergyDetailHistoryVO;
-import pms.vo.history.EnergyHistoryVO;
 import pms.vo.history.EnergyHistoryVONew;
 import pms.vo.system.PmsVO;
 
@@ -200,16 +199,20 @@ public class ESSManager {
      * - EV 충전기 측에 설치된 전력 계측기를 통해 측정되는 사용 전력 저장
      *
      * @param meterCode          계측기 코드
-     * @param totalApparentPower 총 피상 전력
+     * @param totalPower 총 피상 전력
      */
-    public void saveEVChargerPower(String meterCode, float totalApparentPower) {
+    public void saveEVChargerPower(String meterCode, float totalPower) {
         float power = 0;
 
-        if (totalApparentPower >= 0.1) {
-            power = (float) (Math.ceil(totalApparentPower * 10) / 10.0);
+        if (totalPower >= 0.1) {
+            power = (float) (Math.ceil(totalPower * 10) / 10.0);
+
+            if (power >= 60.0) {
+                power = 60;
+            }
         }
 
-        System.out.println("[전력 계측기] 총 피상 전력 = " + totalApparentPower);
+        System.out.println("[전력 계측기] 총 전력 = " + totalPower);
         System.out.println("[전력 계측기] 충전기 소비 전력 = " + power);
 
         evChargerPowerMap.put(meterCode, power);
@@ -284,7 +287,7 @@ public class ESSManager {
         }
 
         SystemQuery systemQuery = new SystemQuery();
-        int result = systemQuery.updateESS(totalCharge, totalDischarge);
+        int result = systemQuery.updateTotalEnergy(totalCharge, totalDischarge);
 
         if (result > 0) {
             PmsVO.ess = systemQuery.getESS();
@@ -388,23 +391,6 @@ public class ESSManager {
 
                 insertEnergyDetailHistory(accumulatedEnergy);
             }
-
-            /*EnergyHistoryVO energyHistoryVO = setEnergyHistoryVO(pcsVO.getPcsCode(), pcsVO.getOperationModeStatus());;
-            int result = insertEnergyHistory(energyHistoryVO);
-
-            if (result > 0) {
-                operationMode = currentOperationMode;
-                accumulatedEnergy = 0;
-                referenceEnergy = 0;
-
-                if (currentOperationMode.equals("1")) {
-                    referenceEnergy = pcsVO.getAccumulatedChargeEnergy();
-                } else {
-                    referenceEnergy = pcsVO.getAccumulatedDischargeEnergy();
-                }
-
-                insertEnergyDetailHistory(accumulatedEnergy);
-            }*/
         }
     }
 
@@ -432,28 +418,11 @@ public class ESSManager {
     /**
      * 전력량 이력 정보 생성
      *
-     * @param deviceCode        장비 코드
-     * @param operationModeType 운전 모드 구분
+     * @param historyType   이력 상태 구분
+     * @param pcsCode       PCS 코드
+     * @param operationMode 운전 모드
      * @return 전력량 이력 정보
      */
-    private EnergyHistoryVO setEnergyHistoryVO(String deviceCode, String operationModeType) {
-        int startTime = DateTimeUtil.getUnixTimestamp();
-        energyNo = operationModeType + deviceCode + startTime;  //전력량 이력 번호
-        String updateDate = DateTimeUtil.getCurrentTimestamp();
-
-        EnergyHistoryVO energyHistoryVO = new EnergyHistoryVO();
-        energyHistoryVO.setEnergyNo(energyNo);
-        energyHistoryVO.setDeviceCode(deviceCode);
-        energyHistoryVO.setOperationModeType(operationModeType);
-        energyHistoryVO.setOperationType(operationType);
-        energyHistoryVO.setOperationHistoryType("0");
-        energyHistoryVO.setSchedulerOperationFlag("N");
-        energyHistoryVO.setStartDate(startTime);
-        energyHistoryVO.setUpdatedAt(updateDate);
-
-        return energyHistoryVO;
-    }
-
     private EnergyHistoryVONew setEnergyHistoryVONew(String historyType, String pcsCode, String operationMode) {
         int historyDate = DateTimeUtil.getUnixTimestamp();
 
@@ -482,35 +451,6 @@ public class ESSManager {
      * @param energyHistoryVO 전력량 이력 정보
      * @return 등록 결과
      */
-    private int insertEnergyHistory(EnergyHistoryVO energyHistoryVO) {
-
-        return energyQuery.insertEnergyHistory(energyHistoryVO);
-    }
-
-    /**
-     * 전력량 이력 갱신
-     * <p>
-     * - ESS 운전 종료 구분에 따라 등록
-     *
-     * @param pcsVO            PCS 정보
-     * @param operationEndType 운전 종료 구분
-     * @return 갱신 결과
-     */
-    private int updateEnergyHistory(PcsVO pcsVO, String operationEndType) {
-        int endDate = DateTimeUtil.getUnixTimestamp();
-        String updateDate = DateTimeUtil.getCurrentTimestamp();
-
-        EnergyHistoryVO energyHistoryVO = new EnergyHistoryVO();
-        energyHistoryVO.setEnergyNo(energyNo);
-        energyHistoryVO.setDeviceCode(pcsVO.getPcsCode());
-        energyHistoryVO.setOperationHistoryType(operationEndType);
-        energyHistoryVO.setFinalAccumulatedEnergy(accumulatedEnergy);
-        energyHistoryVO.setEndDate(endDate);
-        energyHistoryVO.setUpdatedAt(updateDate);
-
-        return energyQuery.updateEnergyHistory(energyHistoryVO);
-    }
-
     private int insertEnergyHistoryNew(EnergyHistoryVONew energyHistoryVO) {
 
         int result = energyQuery.insertEnergyHistoryNew(energyHistoryVO);
@@ -540,5 +480,9 @@ public class ESSManager {
         }
 
         return result;
+    }
+
+    public void sendNotificationMessage() {
+
     }
 }

@@ -21,9 +21,9 @@ public class ESSController {
     private static boolean isChargingEVCharger;
     private static boolean isControllingByCharger;
 
-    private static float chargePower = 0;
-    private static float dischargePower = 0;
-    private final EVChargerClientNew evChargerClientNew = new EVChargerClientNew();
+    private static final float chargePower = 0;
+    private static final float dischargePower = 0;
+    //private final EVChargerClientNew evChargerClientNew = new EVChargerClientNew();
 
     /**
      * 환경 설정 정보 설정
@@ -290,7 +290,7 @@ public class ESSController {
             if (!isHoldingMinSoC) {
 
                 //수정 필요
-                evChargerClientNew.request();   //EV 충전기 API 요청
+                /*evChargerClientNew.request();   //EV 충전기 API 요청
                 List<EVChargerVO> standbyChargers = evChargerClientNew.getEVChargers("ess-charge");    //대기 상태의 충전기 목록 - ESS 충전 가능 여부 확인을 위해 대기 상태인 EV 충전기 목록 호출
                 int totalChargerCount = evChargerClientNew.getTotalChargerCount();  //총 EV 충전기 개수
 
@@ -305,11 +305,17 @@ public class ESSController {
                     isHoldingMinSoC = true;
 
                     System.out.println("EV 충전기 일부 충전 중 ESS 저전력 충전 가능!");
-                }
+                }*/
             }
         }
     }
 
+    /**
+     * EV 충전기에 의한 제어 실행
+     *
+     * @param pcsVO
+     * @param averageSoC
+     */
     private void controlByEVChargerNew(PcsVO pcsVO, float averageSoC) {
         String operation = pcsVO.getOperationStatus();
         String operationMode = pcsVO.getOperationModeStatus();
@@ -338,15 +344,17 @@ public class ESSController {
                     case "0":   //대기
                         //현재 SoC가 최소 운영 SoC에 충족하면 PCS 방전 진행
                         if (averageSoC > MIN_OPERATION_SOC) {
+                            System.out.println("참조 전력 : " + pcsReferencePower);
                             /*
                              * 방전 모드로 전환되는 시간 간격이 있어 제어가 계속 발생하는 현상이 발생하여
                              * PCS 참조 전력이 변경되어 있으면 제어가 계속 발생되지 않도록 예외처리
                              */
                             if (pcsReferencePower == 0) {
                                 //현재 PMS 내부 전력 영점 조절이 '-2.0kW' 기준이여서 '-5kW'로 임시 변경
-                                if (dischargePower < -2.0) {
+                                /*if (dischargePower < -2.0) {
                                     dischargePower = -5;
-                                }
+                                }*/
+                                dischargePower = -20;
 
                                 controlDischarge("05", "0502", String.valueOf(dischargePower)); //ESS 방전
                                 System.out.println("[EV 충전기] 방전 가능 / PCS 방전 제어 = " + dischargePower);

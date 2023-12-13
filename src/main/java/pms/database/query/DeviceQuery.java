@@ -436,12 +436,11 @@ public class DeviceQuery {
         int result = 0;
 
         for (int i=0; i<tableName.size(); i++) {
-            StringBuilder sql = new StringBuilder();
-            sql.append("DELETE FROM " + tableName.get(i) +
-                    " WHERE REG_DATE >= UNIX_TIMESTAMP('"+startDate+"')" +
-                    " AND REG_DATE < UNIX_TIMESTAMP('"+endDate+"')");
+            String sql = "DELETE FROM " + tableName.get(i) +
+                    " WHERE REG_DATE >= UNIX_TIMESTAMP('" + startDate + "')" +
+                    " AND REG_DATE < UNIX_TIMESTAMP('" + endDate + "')";
 
-            result += sqlSession.delete(sql.toString());
+            result += sqlSession.delete(sql);
         }
 
         return result;

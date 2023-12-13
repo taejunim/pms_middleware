@@ -21,7 +21,7 @@ import java.util.Map;
 public class DeviceErrorQuery {
     private final SqlSession sqlSession = new SqlSession();
 
-    public List<DeviceVO.ErrorCodeVO> getDeviceErrorCodeList(String category) {
+    public List<DeviceVO.ErrorCodeVO> getDeviceErrorCodeList() {
         String sql = "SELECT ERROR_CODE, " +
                 "ERROR_CODE_NAME, " +
                 "ERROR_TYPE, " +
@@ -30,8 +30,7 @@ public class DeviceErrorQuery {
                 "MANUFACTURER_CODE, " +
                 "REFERENCE_CODE " +
                 "FROM BASE_DEVICE_ERROR_CODE " +
-                "WHERE USE_FLAG = 'Y' " +
-                "AND DEVICE_CATEGORY = '" + category + "'";
+                "WHERE USE_FLAG = 'Y' ";
 
         return sqlSession.selectList(sql, DeviceVO.ErrorCodeVO.class);
     }
@@ -46,18 +45,17 @@ public class DeviceErrorQuery {
      * @return 장비 오류 코드 Map
      */
     public Map<Object, DeviceVO.ErrorCodeVO> getDeviceErrorCodeMap(String category, String mapKey) {
-        String sql = "SELECT ERROR_CODE, " +
-                "ERROR_CODE_NAME, " +
-                "ERROR_TYPE, " +
-                "DEVICE_CATEGORY, " +
-                "DEVICE_CATEGORY_SUB, " +
-                "MANUFACTURER_CODE, " +
-                "REFERENCE_CODE " +
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT ERROR_CODE, ERROR_CODE_NAME, ERROR_TYPE, " +
+                "DEVICE_CATEGORY, DEVICE_CATEGORY_SUB, MANUFACTURER_CODE, REFERENCE_CODE " +
                 "FROM BASE_DEVICE_ERROR_CODE " +
-                "WHERE USE_FLAG = 'Y' " +
-                "AND DEVICE_CATEGORY = '" + category + "'";
+                "WHERE USE_FLAG = 'Y' ");
 
-        return sqlSession.selectMap(sql, DeviceVO.ErrorCodeVO.class, mapKey);
+        if (category != null) {
+            sql.append("AND DEVICE_CATEGORY = '").append(category).append("'");
+        }
+
+        return sqlSession.selectMap(sql.toString(), DeviceVO.ErrorCodeVO.class, mapKey);
     }
 
     public Map<Object, DeviceVO.ErrorCodeVO> getDeviceErrorCodeMap(String category, String[] mapKeys) {
