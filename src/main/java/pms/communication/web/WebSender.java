@@ -372,7 +372,7 @@ public class WebSender extends WebClient {
         float rPhaseCurrent = pcsVO.getRPhaseCurrent(); //R상 전류
         float sPhaseCurrent = pcsVO.getSPhaseCurrent(); //S상 전류
         float tPhaseCurrent = pcsVO.getTPhaseCurrent(); //T상 전류
-        float sumPhaseCurrent = pcsVO.getRPhaseCurrent() + pcsVO.getSPhaseCurrent() + pcsVO.getTPhaseCurrent(); //상 전류 총 합계
+        float sumPhaseCurrent = rPhaseCurrent + sPhaseCurrent + tPhaseCurrent; //상 전류 총 합계
         float averagePhaseCurrent = (float) (Math.round((sumPhaseCurrent / 3) * 10) / 10.0);    //평균 상 전류 게산
 
         JsonObject bodyJson = new JsonObject();
@@ -595,9 +595,9 @@ public class WebSender extends WebClient {
         float sumLineVoltage = rsLineVoltage + stLineVoltage + trLineVoltage;   //선간 전압 합계
         float averageLineVoltage = (float) (Math.round((sumLineVoltage / 3) * 10) / 10.0);  //선간 전압 평균 계산
 
-        float rPhaseCurrent = relayVO.getRsLineVoltage();   //R상 전류
-        float sPhaseCurrent = relayVO.getRsLineVoltage();   //S상 전류
-        float tPhaseCurrent = relayVO.getRsLineVoltage();   //T상 전류
+        float rPhaseCurrent = relayVO.getRPhaseCurrent();   //R상 전류
+        float sPhaseCurrent = relayVO.getSPhaseCurrent();   //S상 전류
+        float tPhaseCurrent = relayVO.getTPhaseCurrent();   //T상 전류
         float sumPhaseCurrent = rPhaseCurrent + sPhaseCurrent + tPhaseCurrent;  //상 전류 합계
         float averagePhaseCurrent = (float) (Math.round((sumPhaseCurrent / 3) * 10) / 10.0);    //상 전류 평균 계산
 

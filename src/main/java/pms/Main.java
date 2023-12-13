@@ -2,14 +2,11 @@ package pms;
 
 import pms.communication.CommunicationManager;
 import pms.scheduler.CommonScheduler;
-import pms.system.PMSCode;
 import pms.system.PMSManager;
 import pms.system.ess.ESSController;
 import pms.system.ess.ESSScheduleManager;
-import pms.vo.system.DeviceVO;
+import pms.system.ess.NotificationService;
 import pms.vo.system.PmsVO;
-
-import java.util.*;
 
 public class Main {
     /**
@@ -38,31 +35,20 @@ public class Main {
         System.out.println("[전력 계측기] 총 피상 전력 = " + Math.ceil(test1 * 100) / 100.0);
         System.out.println("[전력 계측기] 충전기 소비 전력 = " + chargerPower);*/
 
-//        new PMSManager().initSystem();
-//        new CommonScheduler().startScheduler();
-//
-//        String essType = PmsVO.ess.getEssType();
-//
-//        //ESS 유형에 따른 기능 실행
-//        if (essType.equals("01")) {
-//            new ESSController().setConfig();
-//            new ESSScheduleManager().checkSchedule();
-//        } else if (essType.equals("02")) {
-//
-//        }
-//
-//        executeCommunication();
+        new PMSManager().initSystem();
+        new CommonScheduler().startScheduler();
 
-        Map<String, String> airConditionerDeviceVosMap = new HashMap<>();
+        String essType = PmsVO.ess.getEssType();
 
+        //ESS 유형에 따른 기능 실행
+        if (essType.equals("01")) {
+            new ESSController().setConfig();
+            new ESSScheduleManager().checkSchedule();
+        } else if (essType.equals("02")) {
 
-        airConditionerDeviceVosMap.put("800201", "PmsVO.airConditioners.get(PMSCode.getCommonCo.get(0)");
-        airConditionerDeviceVosMap.put("800202", "PmsVO.airConditioners.get(PMSCoet(1)");
-
-        for (String key : airConditionerDeviceVosMap.keySet()) {
-            System.out.println(key);
         }
 
+        executeCommunication();
     }
 
     /**

@@ -13,7 +13,7 @@ import java.util.*;
  * IOBoardReader Class
  */
 public class IOBoardReader {
-    private IOBoardCommunication ioBoardCommunication = new IOBoardCommunication();
+    private final IOBoardCommunication ioBoardCommunication = new IOBoardCommunication();
     private final Map<String, SensorVO> sensorDataMap = new HashMap<>(); //전체 센서 데이터
     private final Map<String, AirConditionerVO> airConditionerDataMap = new HashMap<>(); //공조 장치 데이터
     private final List<DeviceErrorVO> inputDeviceErrorsData = new ArrayList<>();  //에러 데이터
@@ -41,9 +41,9 @@ public class IOBoardReader {
 
         if (inputData != null) {
             for (Map.Entry<Integer, String> entry : IOBoardClient.inputDeviceCodeMap.entrySet()) {
-                if (entry.getValue().substring(0, 2).equals("04")) {    //04 - 센서
+                if (entry.getValue().startsWith("04")) {    //04 - 센서
                     setSensorsData(entry.getValue(), PMSCode.getCommonCode("DEVICE_STATUS_10"), inputData[entry.getKey()], regDate);
-                } else if (entry.getValue().substring(0, 2).equals("80")) { //80 - 공조
+                } else if (entry.getValue().startsWith("80")) { //80 - 공조
                     setAirConditionersData(entry.getValue(), getAirConditionerStatusCode(inputData[entry.getKey()]), regDate);
                 }
             }
@@ -53,9 +53,9 @@ public class IOBoardReader {
 
         if (outputData != null) {
             for (Map.Entry<Integer, String> entry : IOBoardClient.outputDeviceCodeMap.entrySet()) {
-                if (entry.getValue().substring(0, 2).equals("04")) {    //04 - 센서.getValue().charAt(0))]);
+                if (entry.getValue().startsWith("04")) {    //04 - 센서.getValue().charAt(0))]);
                     setSensorsData(entry.getValue(), PMSCode.getCommonCode("DEVICE_STATUS_10"), outputData[entry.getKey()], regDate);
-                } else if (entry.getValue().substring(0, 2).equals("80")) { //80 - 공조
+                } else if (entry.getValue().startsWith("80")) { //80 - 공조
                     setAirConditionersData(entry.getValue(), getAirConditionerStatusCode(outputData[entry.getKey()]), regDate);
                 }
             }
@@ -146,9 +146,9 @@ public class IOBoardReader {
      */
     public void setInputReadDataByError(String statusCode, String errCodeKey, int regDate) {
         for (Map.Entry<Integer, String> entry : IOBoardClient.inputDeviceCodeMap.entrySet()) {
-            if (entry.getValue().substring(0, 2).equals("04")) {    //04 - 센서
+            if (entry.getValue().startsWith("04")) {    //04 - 센서
                 setSensorsData(entry.getValue(), statusCode, null, regDate);
-            } else if (entry.getValue().substring(0, 2).equals("80")) { //80 - 공조
+            } else if (entry.getValue().startsWith("80")) { //80 - 공조
                 setAirConditionersData(entry.getValue(), statusCode, regDate);
             }
             setInputDeviceErrors(entry.getValue(), errCodeKey, regDate);
@@ -165,9 +165,9 @@ public class IOBoardReader {
      */
     public void setOutputReadDataByError(String statusCode, String errCodeKey, int regDate) {
         for (Map.Entry<Integer, String> entry : IOBoardClient.outputDeviceCodeMap.entrySet()) {
-            if (entry.getValue().substring(0, 2).equals("04")) {    //04 - 센서
+            if (entry.getValue().startsWith("04")) {    //04 - 센서
                 setSensorsData(entry.getValue(), statusCode, null, regDate);
-            } else if (entry.getValue().substring(0, 2).equals("80")) { //80 - 공조
+            } else if (entry.getValue().startsWith("80")) { //80 - 공조
                 setAirConditionersData(entry.getValue(), statusCode, regDate);
             }
             setOutputDeviceErrors(entry.getValue(), errCodeKey, regDate);

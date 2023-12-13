@@ -16,7 +16,7 @@ import java.util.List;
 public class AirConditionerJob implements Job {
     private final AirConditionerClient airConditionerClient = new AirConditionerClient();
     private final WebSender webSender = new WebSender();
-    private String testTime = String.valueOf(DateTimeUtil.getUnixTimestamp());
+    private final String testTime = String.valueOf(DateTimeUtil.getUnixTimestamp());
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {

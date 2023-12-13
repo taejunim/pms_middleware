@@ -18,8 +18,8 @@ import java.util.Map;
 
 @DisallowConcurrentExecution
 public class IOBoardJob implements Job {
-    private IOBoardClient ioBoardClient = new IOBoardClient();
-    private WebSender webSender = new WebSender();
+    private final IOBoardClient ioBoardClient = new IOBoardClient();
+    private final WebSender webSender = new WebSender();
 
 
     @Override
