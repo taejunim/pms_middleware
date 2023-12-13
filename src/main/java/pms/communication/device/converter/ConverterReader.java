@@ -62,14 +62,15 @@ public class ConverterReader {
             String dataType = requestItem.getDataType();
             int size = requestItem.getSize();
 
+            //실제 운영 용
             if (functionCode.equals("03")) {
                 prefix = "4x";
             }
 
-            //임시 - 테스트용
-            if (functionCode.equals("04")) {
+            //임시 - 테스트용(시뮬레이터)
+            /*if (functionCode.equals("04")) {
                 prefix = "4x";
-            }
+            }*/
 
             String item = itemGroup + "_" + itemName;
             String itemAddress = prefix + address + ":" + dataType + "[" + size + "]";
