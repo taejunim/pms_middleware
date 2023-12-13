@@ -51,7 +51,8 @@ public class PowerMeterJob implements Job {
         sendReadData(meterCode, powerMeterVO);
 
         ESSManager essManager = new ESSManager();
-        essManager.saveEVChargerPower(meterCode, powerMeterVO.getTotalApparentPower());
+        //essManager.saveEVChargerPower(meterCode, powerMeterVO.getTotalApparentPower());
+        essManager.saveEVChargerPower(meterCode, powerMeterVO.getTotalActivePower());
     }
 
     private void executeConnectionError(String meterCode) {
