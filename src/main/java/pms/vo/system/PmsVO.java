@@ -33,6 +33,7 @@ public class PmsVO {
     public static Map<Object, DeviceVO.ControlVO> controlCodes;
 
     /* 장비 오류 코드 정보 */
+    public static Map<Object, DeviceVO.ErrorCodeVO> errorCodes;
     public static Map<Object, DeviceVO.ErrorCodeVO> commonErrorCodes;
     public static Map<Object, DeviceVO.ErrorCodeVO> bmsErrorCodes;
     public static Map<Object, DeviceVO.ErrorCodeVO> pcsErrorCodes;

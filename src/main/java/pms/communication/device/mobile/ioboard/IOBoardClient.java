@@ -22,7 +22,7 @@ import pms.vo.system.PmsVO;
 
 import java.util.*;
 
-import static pms.communication.CommunicationManager.deviceProperties;
+import static pms.system.PMSManager.applicationProperties;
 
 public class IOBoardClient {
     private final IOBoardScheduler ioBoardScheduler = new IOBoardScheduler();
@@ -30,8 +30,8 @@ public class IOBoardClient {
     private static ControlRequestVO controlRequest = null;
     public static HashMap<Integer, String> inputDeviceCodeMap = new HashMap<>();   // IndexNum : DeviceCode (Key : Value)
     public static HashMap<Integer, String> outputDeviceCodeMap = new HashMap<>();  // IndexNum : DeviceCode (Key : Value)
-    private static Map<String, DeviceVO> sensorDeviceVosMap = new HashMap<>();
-    private static Map<String, DeviceVO> airConditionerDeviceVosMap = new HashMap<>();
+    private static final Map<String, DeviceVO> sensorDeviceVosMap = new HashMap<>();
+    private static final Map<String, DeviceVO> airConditionerDeviceVosMap = new HashMap<>();
     private static Map<String, SensorVO> sensorDataMap = new HashMap<>();
     private static Map<String, AirConditionerVO> airConditionerDataMap = new HashMap<>();
     private static Map<String, DeviceErrorVO> sensorErrorsMap = new HashMap<>();
@@ -78,7 +78,7 @@ public class IOBoardClient {
      * @throws Exception
      */
     public void connect() throws Exception {
-        serialPort = new SerialPort(deviceProperties.getProperty("ioBoard.port"));
+        serialPort = new SerialPort(applicationProperties.getProperty("io-board.port"));
         serialPort.openPort();
         serialPort.setParams(SerialPort.BAUDRATE_38400, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
     }
@@ -323,7 +323,7 @@ public class IOBoardClient {
      * @return - Map(장비(센서)코드, 센서데이터 VO)
      */
     public Map<String, SensorVO> getSensorDataMap() {
-        return this.sensorDataMap;
+        return sensorDataMap;
     }
 
     /**
@@ -332,7 +332,7 @@ public class IOBoardClient {
      * @return - Map(장비(공조장치)코드, 공조장치 데이터 VO)
      */
     public Map<String, AirConditionerVO> getAirConditionerDataMap() {
-        return this.airConditionerDataMap;
+        return airConditionerDataMap;
     }
 
     /**
@@ -364,13 +364,13 @@ public class IOBoardClient {
     private Map<String, DeviceErrorVO> setSensorErrorsData(List<DeviceErrorVO> inputErrorsData, List<DeviceErrorVO> outputErrorsData) {
         Map<String, DeviceErrorVO> sensorErrorsMap = new HashMap<>();
         for (DeviceErrorVO vo : inputErrorsData) {
-            if (vo.getDeviceCode().substring(0, 2).equals("04")) {
+            if (vo.getDeviceCode().startsWith("04")) {
                 sensorErrorsMap.put(vo.getDeviceCode(), vo);
             }
         }
 
         for (DeviceErrorVO vo : outputErrorsData) {
-            if (vo.getDeviceCode().substring(0, 2).equals("04")) {
+            if (vo.getDeviceCode().startsWith("04")) {
                 sensorErrorsMap.put(vo.getDeviceCode(), vo);
             }
         }
@@ -388,12 +388,12 @@ public class IOBoardClient {
     private Map<String, DeviceErrorVO> setAirConditionerErrorsData(List<DeviceErrorVO> inputErrorsData, List<DeviceErrorVO> outputErrorsData) {
         Map<String, DeviceErrorVO> airConditionerErrorsMap = new HashMap<>();
         for (DeviceErrorVO vo : inputErrorsData) {
-            if (vo.getDeviceCode().substring(0, 2).equals("80")) {
+            if (vo.getDeviceCode().startsWith("80")) {
                 airConditionerErrorsMap.put(vo.getDeviceCode(), vo);
             }
         }
         for (DeviceErrorVO vo : outputErrorsData) {
-            if (vo.getDeviceCode().substring(0, 2).equals("80")) {
+            if (vo.getDeviceCode().startsWith("80")) {
                 airConditionerErrorsMap.put(vo.getDeviceCode(), vo);
             }
         }
@@ -549,11 +549,7 @@ public class IOBoardClient {
         ioBoardWriter.setConnection(serialPort);
         ioBoardWriter.request("H0011110000");   // 명령어 프로토콜 참조
 
-        if (ioBoardWriter.getResult() == 1) {
-            fanPower = true;
-        } else {
-            fanPower = false;
-        }
+        fanPower = ioBoardWriter.getResult() == 1;
 
         //!!! IO보드 - 최초 시작시 흡/배기팬 전원 제어 백업 파일 부분 구현 필요
         /*ControlResponseVO responseVO = ioBoardWriter.getResponseVO();

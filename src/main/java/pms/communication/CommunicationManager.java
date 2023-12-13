@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Properties;
 
 public class CommunicationManager {
-    public static final Properties websocketProperties = ResourceUtil.loadProperties("websocket");
     public static final Properties deviceProperties = ResourceUtil.loadProperties("device");
 
     public void executeWebsocket() {
@@ -38,17 +37,18 @@ public class CommunicationManager {
 
     public void executeDevice() {
         String essType = PmsVO.ess.getEssType();
+        System.out.println("ESS 유형 : " + essType);
 
         executeBMS();
 
         if (essType.equals("01")) {
             executePCS();
-            //executePowerRelay();
+            executePowerRelay();
             executePowerMeter();
-            executeAirConditioner();
+            //executeAirConditioner();
         } else if (essType.equals("02")) {
             executeConverter();
-            executeIOBoard();
+            //executeIOBoard();
         }
     }
 

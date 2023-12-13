@@ -6,12 +6,12 @@ import org.java_websocket.handshake.ServerHandshake;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static pms.communication.CommunicationManager.websocketProperties;
+import static pms.system.PMSManager.applicationProperties;
 
 public class WebClient {
     public static WebSocketClient webSocketClient;
-    private static final String SERVER_URI = websocketProperties.getProperty("websocket.uri");
-    public static final String MIDDLEWARE_ID = websocketProperties.getProperty("websocket.id");
+    private static final String SERVER_URI = applicationProperties.getProperty("websocket.uri");
+    public static final String MIDDLEWARE_ID = applicationProperties.getProperty("websocket.id");
 
     public String getMiddlewareId() {
         return MIDDLEWARE_ID;

@@ -11,6 +11,8 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.util.*;
 
+import static pms.system.PMSManager.applicationProperties;
+
 /**
  * Connection Pool
  * <p>
@@ -29,7 +31,6 @@ public class ConnectionPool {
     private static final Long CONNECTION_MAX_LIFE_TIME = 1000L * 30L;
     private static final Map<Connection, Date> connectionMap = new HashMap<>();
     private static GenericObjectPool<PoolableConnection> connectionPool;
-    private static final Properties databaseProperties = ResourceUtil.loadProperties("database");
 
     /**
      * Database Connection Pool Initialization
@@ -37,9 +38,9 @@ public class ConnectionPool {
     public static void initConnectionPool() {
         try {
             ConnectionFactory connectionFactory = new DriverManagerConnectionFactory(
-                    databaseProperties.getProperty("db.url"),
-                    databaseProperties.getProperty("db.user"),
-                    databaseProperties.getProperty("db.password")
+                    applicationProperties.getProperty("db.url"),
+                    applicationProperties.getProperty("db.user"),
+                    applicationProperties.getProperty("db.password")
             );
 
             PoolableConnectionFactory poolConnectionFactory = new PoolableConnectionFactory(connectionFactory, null);

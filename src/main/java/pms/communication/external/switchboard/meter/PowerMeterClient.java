@@ -17,6 +17,8 @@ import pms.vo.device.external.PowerMeterVO;
 
 import java.util.*;
 
+import static pms.system.PMSManager.applicationProperties;
+
 /**
  * packageName    : pms.communication.external.switchboard
  * fileName       : PowerMeterReader
@@ -30,7 +32,6 @@ import java.util.*;
  */
 public class PowerMeterClient {
     private final PowerMeterScheduler powerMeterScheduler = new PowerMeterScheduler();
-    public static final Properties deviceProperties = ResourceUtil.loadProperties("device");  //device.properties
     private static final Map<String, ModbusSerialMaster> connections = new HashMap<>();   //미터기별 connection 정보 갖고 있는 map
     private static final Map<String, DeviceVO> powerMeterInfoMap = new HashMap<>(); //Rack 장비 정보
     private static Map<String, List<PowerMeterVO.RequestItem>> requestItemsMap = new HashMap<>();   //수신 요청 아이템 Map
@@ -64,7 +65,7 @@ public class PowerMeterClient {
 
     private void setConnection(DeviceVO deviceVO) {
         powerMeterInfoMap.put(deviceVO.getDeviceCode(), deviceVO);
-        String port = deviceProperties.getProperty("meter.power-" + deviceVO.getDeviceNo() + ".port");      //포트 정보 있는 properties ex) meter.power-1 , meter.power-2
+        String port = applicationProperties.getProperty("meter.power-" + deviceVO.getDeviceNo() + ".port");      //포트 정보 있는 properties ex) meter.power-1 , meter.power-2
         SerialParameters parameters = new SerialParameters();
 
         parameters.setPortName(port);                                               //통신 포트

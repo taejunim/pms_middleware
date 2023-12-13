@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 @Data
 public class EssVO {
     private String essCode; //ESS 코드
+    private String essName;
     private String essType; //ESS 유형 - 01: 고정형 ESS, 02: 이동형 ESS
     private float contractPower;    //계약 전력
     private float totalBatteryEnergy;   //총 배터리 용량

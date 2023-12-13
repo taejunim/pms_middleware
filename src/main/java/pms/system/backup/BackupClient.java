@@ -44,7 +44,6 @@ public class BackupClient {
     private final String SFTP_PASSWORD = applicationProperties.getProperty("sftp.password");
     private final String SFTP_ROOT_PATH = applicationProperties.getProperty("sftp.root.path") + SEPARATOR + PmsVO.ess.getEssCode();
     public final String FILE_PATH = applicationProperties.getProperty("file.path");
-    public final String SLASH = applicationProperties.getProperty("path.slash");
     private boolean isValid = false;
 
     public void execute() {
@@ -91,7 +90,7 @@ public class BackupClient {
 
                         String deviceCode = file.getName().split("-")[1];
                         String tempFileDate = file.getName().replace(".csv","");
-                        String startDate = tempFileDate.substring(tempFileDate.length()-8, tempFileDate.length()) + "000000";
+                        String startDate = tempFileDate.substring(tempFileDate.length()-8) + "000000";
                         String endDate = new java.text.SimpleDateFormat("yyyyMMddHHmmss").format(getCalculatedDate(startDate, Calendar.DATE, 1));
 
                         DeviceQuery deviceQuery = new DeviceQuery();

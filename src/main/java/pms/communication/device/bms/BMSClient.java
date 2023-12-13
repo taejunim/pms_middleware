@@ -9,6 +9,7 @@ import pms.database.query.DeviceQuery;
 import pms.scheduler.device.bms.BMSScheduler;
 import pms.system.PMSCode;
 import pms.system.backup.BackupFile;
+import pms.system.ess.NotificationService;
 import pms.vo.device.BmsVO;
 import pms.vo.device.control.ControlRequestVO;
 import pms.vo.device.control.ControlResponseVO;
@@ -23,7 +24,7 @@ import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.*;
 
-import static pms.communication.CommunicationManager.deviceProperties;
+import static pms.system.PMSManager.applicationProperties;
 
 /**
  * BMS Client
@@ -39,6 +40,7 @@ public class BMSClient {
     private static final Map<String, List<String>> previousCommonErrorCodesMap = new HashMap<>();
     private static final Map<String, Integer> previousRegDateMap = new HashMap<>(); //Rack 별 데이터 등록 일시 Map
     private static final Map<String, ControlRequestVO> controlRequestMap = new HashMap<>(); //Rack 별 제어 요청 Map
+    private final NotificationService notificationService = new NotificationService();
 
     /**
      * BMS 통신 설정 및 실행
@@ -118,8 +120,8 @@ public class BMSClient {
         rackInfoMap.put(rackCode, rackVO);
 
         String rackKey = "rack-" + getRackInfo(rackCode).getDeviceNo();
-        String host = deviceProperties.getProperty(rackKey + ".host");
-        String port = deviceProperties.getProperty(rackKey + ".port");
+        String host = applicationProperties.getProperty(rackKey + ".host");
+        String port = applicationProperties.getProperty(rackKey + ".port");
 
         try {
             TCPMasterConnection connection = new TCPMasterConnection(InetAddress.getByName(host));
@@ -217,7 +219,7 @@ public class BMSClient {
 
                     //이전 오류 코드와 현재 오류 코드 비교 후 데이터 처리
                     if (!containsErrors(rackCode, currentErrorCodes)) {
-                        boolean isInsertError = insertErrorData(errorsVO);
+                        boolean isInsertError = insertErrorData(rackCode, errorsVO);
 
                         if (isInsertError) {
                             previousErrorCodesMap.replace(rackCode, currentErrorCodes); //이전 오류 코드 목록 갱신
@@ -276,7 +278,7 @@ public class BMSClient {
      * @param errors 오류 정보 목록
      * @return 등록 결과
      */
-    private boolean insertErrorData(DeviceErrorsVO errors) {
+    private boolean insertErrorData(String rackCode, DeviceErrorsVO errors) {
         boolean complete = false;
         int rackResult;
         int moduleResult;
@@ -288,7 +290,10 @@ public class BMSClient {
         rackResult = deviceErrorQuery.insertDeviceErrors(deviceErrors);
 
         if (rackResult > 0) {
-            new BackupFile().backupData("device-error", deviceErrors.get(0).getDeviceCode(), deviceErrors);
+            new BackupFile().backupData("device-error", rackCode, deviceErrors);
+
+            /*String message = notificationService.setErrorMessageContent(getRackInfo(rackCode), deviceErrors);
+            notificationService.sendMessage(message); //오류 문자 메시지 전송*/
 
             if (!componentErrors.isEmpty()) {
                 moduleResult = deviceErrorQuery.insertComponentErrors(componentErrors);
@@ -344,6 +349,7 @@ public class BMSClient {
             return previousRegDateMap.get(rackCode) == currentRegDate;
         } else {
             previousRegDateMap.put(rackCode, currentRegDate);
+
             return false;
         }
     }

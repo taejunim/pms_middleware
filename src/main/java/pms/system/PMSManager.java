@@ -94,6 +94,11 @@ public class PMSManager {
         }
     }
 
+    /**
+     * 제어 이력 등록
+     *
+     * @param controlHistoryVO 제어 이력 정보
+     */
     private void insertControlHistory(ControlHistoryVO controlHistoryVO) {
         ControlQuery controlQuery = new ControlQuery();
         int result = controlQuery.insertControlHistory(controlHistoryVO);
@@ -103,6 +108,11 @@ public class PMSManager {
         }
     }
 
+    /**
+     * 제어 응답 전송
+     *
+     * @param responseVO 제어 응답 정보
+     */
     private void sendControlResponse(ControlResponseVO responseVO) {
         int result = responseVO.getResult();
         String remoteId = responseVO.getRequestVO().getRemoteId();
@@ -112,10 +122,16 @@ public class PMSManager {
         new WebSender().sendResponse(remoteId, pcsCode, controlCode, result, "");  //제어응답전송수정
     }
 
+    /**
+     * ESS 정보 설정
+     */
     private void setESS() {
         PmsVO.ess = systemQuery.getESS();
     }
 
+    /**
+     * ESS 운영 환경설정 정보 설정
+     */
     private void setOperationConfig() {
         for (Object key : PmsVO.deviceCategorySubCodes.keySet()) {
             CommonCodeVO categorySubVO = PmsVO.deviceCategorySubCodes.get(key);
@@ -134,6 +150,9 @@ public class PMSManager {
         }
     }
 
+    /**
+     * ESS 운영 일정 정보 설정
+     */
     private void setOperationSchedule() {
         String currentDate = DateTimeUtil.getDateFormat("yyyyMMdd");
         String currentTime = DateTimeUtil.getDateFormat("HHmmss");
@@ -240,6 +259,9 @@ public class PMSManager {
         }
     }
 
+    /**
+     * 장비 제어 코드 정보 설정
+     */
     private void setDeviceControlCode() {
         PmsVO.controlCodes = controlQuery.getControlCodes("CONTROL_CODE");
     }
@@ -248,6 +270,7 @@ public class PMSManager {
      * 장비 오류 코드 정보 설정
      */
     private void setDeviceErrorCode() {
+        PmsVO.errorCodes = deviceErrorQuery.getDeviceErrorCodeMap(null, "ERROR_CODE");
         PmsVO.commonErrorCodes = deviceErrorQuery.getDeviceErrorCodeMap("00", "REFERENCE_CODE"); //공통 오류 코드 설정
 
         //장비 분류에 따라 각 장비 오류 코드 정보 설정
@@ -338,6 +361,12 @@ public class PMSManager {
         PmsVO.sensors.put(categorySub, sensorList);
     }
 
+    /**
+     * 미터기 정보 설정
+     *
+     * @param category    장비 분류 코드
+     * @param categorySub 장비 하위 분류 코드
+     */
     private void setMeters(String category, String categorySub) {
         List<DeviceVO> meterList = deviceQuery.getDeviceList(category, categorySub);
 
@@ -356,6 +385,12 @@ public class PMSManager {
         PmsVO.airConditioners.put(categorySub, airConditionerList);
     }
 
+    /**
+     * Middleware 정보 설정
+     *
+     * @param category    장비 분류 코드
+     * @param categorySub 장비 하위 분류 코드
+     */
     private void setMiddleware(String category, String categorySub) {
         PmsVO.middleware = deviceQuery.getDevice(category, categorySub);
     }

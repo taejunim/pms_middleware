@@ -24,6 +24,7 @@ public class PCSReader {
     private final PcsVO pcsVO = new PcsVO();
     private final List<DeviceErrorVO> pcsErrors = new ArrayList<>();
     private DeviceErrorVO commonError = new DeviceErrorVO();
+    private final List<DeviceErrorVO> commonErrors = new ArrayList<>();
 
     public PCSReader(DeviceVO pcsInfo) {
         this.unitId = pcsInfo.getDeviceNo();
@@ -124,12 +125,18 @@ public class PCSReader {
         pcsVO.setFaultFlag("N");
 
         String errorCode = PMSCode.getCommonErrorCode(errorCodeKey);
-        //setPcsErrors(errorCode);
         commonError = setErrorVO(errorCode);
+
+        DeviceErrorVO errorVO = setErrorVO(errorCode);
+        commonErrors.add(errorVO);
     }
 
     public DeviceErrorVO getCommonError() {
         return commonError;
+    }
+
+    public List<DeviceErrorVO> getCommonErrors() {
+        return commonErrors;
     }
 
     public List<DeviceErrorVO> getPcsErrors() {

@@ -12,6 +12,7 @@ import pms.scheduler.device.pcs.PCSScheduler;
 import pms.system.PMSCode;
 import pms.system.backup.BackupFile;
 import pms.system.ess.ControlUtil;
+import pms.system.ess.NotificationService;
 import pms.vo.device.PcsVO;
 import pms.vo.device.control.ControlRequestVO;
 import pms.vo.device.control.ControlResponseVO;
@@ -22,7 +23,7 @@ import pms.vo.system.PmsVO;
 
 import java.util.*;
 
-import static pms.communication.CommunicationManager.deviceProperties;
+import static pms.system.PMSManager.applicationProperties;
 
 public class PCSClient {
     private final PCSScheduler pcsScheduler = new PCSScheduler();
@@ -33,17 +34,11 @@ public class PCSClient {
     private static List<PcsVO.RequestItem> requestItems = new ArrayList<>();
     private static List<String> previousErrorCodes = new ArrayList<>();
     private static String previousCommonErrorCode;
+    private static List<String> previousCommonErrorCodes = new ArrayList<>();
     private static int previousRegDate = 0;
     private static ControlRequestVO controlRequest = null;
-
-    /**
-     * 통신 연결 정보 호출
-     *
-     * @return 통신 연결 정보
-     */
-    public ModbusSerialMaster getConnection() {
-        return connection;
-    }
+    private final BackupFile backupFile = new BackupFile();
+    private final NotificationService notificationService = new NotificationService();
 
     /**
      * 통신 클라이언트 실행
@@ -64,6 +59,15 @@ public class PCSClient {
             requestItems = new PCSReadItem().getRequestItems(); //수신 요청 항목 생성
             executeScheduler(); //스케줄러 실행
         }
+    }
+
+    /**
+     * 통신 연결 정보 호출
+     *
+     * @return 통신 연결 정보
+     */
+    public ModbusSerialMaster getConnection() {
+        return connection;
     }
 
     /**
@@ -104,7 +108,7 @@ public class PCSClient {
      * 통신 연결 정보 설정
      */
     private void setConnection() {
-        String port = deviceProperties.getProperty("pcs.port");
+        String port = applicationProperties.getProperty("pcs.port");
 
         SerialParameters parameters = new SerialParameters();
         parameters.setPortName(port);   //통신 포트
@@ -144,7 +148,7 @@ public class PCSClient {
         PcsVO pcsVO = pcsReader.getReadData();  //PCS 수신 데이터 호출
         List<DeviceErrorVO> pcsErrors = pcsReader.getPcsErrors();   //PCS 장비 오류 정보 호출
 
-        processData(pcsVO, pcsErrors, null);    //수신 데이터 처리
+        processData(pcsVO, pcsErrors, null, null);    //수신 데이터 처리
 
         return pcsVO;
     }
@@ -161,8 +165,9 @@ public class PCSClient {
         PcsVO pcsVO = pcsReader.getReadData();  //PCS 수신 데이터 호출
         List<DeviceErrorVO> pcsErrors = pcsReader.getPcsErrors();   //PCS 장비 오류 정보 호출
         DeviceErrorVO commonError = pcsReader.getCommonError(); //공통 통신 오류 정보 호출
+        List<DeviceErrorVO> commonErrors = pcsReader.getCommonErrors();
 
-        processData(pcsVO, pcsErrors, commonError); //수신 데이터 처리
+        processData(pcsVO, pcsErrors, commonError, commonErrors); //수신 데이터 처리
 
         return pcsVO;
     }
@@ -185,13 +190,17 @@ public class PCSClient {
         return previousCommonErrorCode;
     }
 
+    public List<String> getPreviousCommonErrorCodes() {
+        return previousCommonErrorCodes;
+    }
+
     /**
      * 수신 데이터 처리
      *
      * @param pcsVO     PCS 정보
      * @param pcsErrors PCS 오류 정보
      */
-    private void processData(PcsVO pcsVO, List<DeviceErrorVO> pcsErrors, DeviceErrorVO commonError) {
+    private void processData(PcsVO pcsVO, List<DeviceErrorVO> pcsErrors, DeviceErrorVO commonError, List<DeviceErrorVO> commonErrors) {
         int currentRegDate = pcsVO.getRegDate();
 
         //이전 등록 시간과 현재 시간을 확인하여 Duplicate 오류 방지
@@ -205,8 +214,8 @@ public class PCSClient {
                     if (commonError == null) {
                         List<String> currentErrorCodes = setCurrentErrorCodes(pcsErrors);
 
-                        //이전 오류와 현재 오류 비교하여
-                        if (!containsErrors(currentErrorCodes)) {
+                        //이전 오류와 현재 오류 비교
+                        if (!containsErrors("device", currentErrorCodes)) {
                             boolean isInsertError = insertErrorData(pcsErrors);
 
                             if (isInsertError) {
@@ -215,13 +224,25 @@ public class PCSClient {
                             }
                         }
                     } else {
-                        String currentCommonErrorCode = commonError.getErrorCode();
+                        /*String currentCommonErrorCode = commonError.getErrorCode();
 
                         if (!containsCommonError(currentCommonErrorCode)) {
                             boolean isInsertCommonError = insertCommonErrorData(commonError);
 
                             if (isInsertCommonError) {
                                 previousCommonErrorCode = currentCommonErrorCode;
+                            }
+                        }*/
+
+                        //변경 진행 중 - 테스트 필요
+                        List<String> currentCommonErrorCodes = setCurrentErrorCodes(commonErrors);
+
+                        if (!containsErrors("common", currentCommonErrorCodes)) {
+                            boolean isInsertError = insertErrorData(commonErrors);
+
+                            if (isInsertError) {
+                                previousCommonErrorCodes.clear();
+                                previousCommonErrorCodes = currentCommonErrorCodes;
                             }
                         }
                     }
@@ -244,7 +265,7 @@ public class PCSClient {
         int result = deviceQuery.insertPCSData(pcsVO);
 
         if (result > 0) {
-            new BackupFile().backupData("device", pcsVO.getPcsCode(), pcsVO);
+            backupFile.backupData("device", pcsVO.getPcsCode(), pcsVO);
         }
 
         return result > 0;
@@ -255,7 +276,7 @@ public class PCSClient {
         int result = deviceErrorQuery.insertCommonError(deviceErrorVO);
 
         if (result > 0) {
-            new BackupFile().backupData("device-error", pcsInfo.getDeviceCode(), deviceErrorVO);
+            backupFile.backupData("device-error", pcsInfo.getDeviceCode(), deviceErrorVO);
         }
 
         return result > 0;
@@ -266,7 +287,10 @@ public class PCSClient {
         int result = deviceErrorQuery.insertDeviceErrors(errors);
 
         if (result > 0) {
-            new BackupFile().backupData("device-error", pcsInfo.getDeviceCode(), errors);
+            backupFile.backupData("device-error", pcsInfo.getDeviceCode(), errors);
+
+            /*String message = notificationService.setErrorMessageContent(pcsInfo, errors);
+            notificationService.sendMessage(message);   //오류 문자 메시지 전송*/
         }
 
         return result > 0;
@@ -297,9 +321,14 @@ public class PCSClient {
      * @param currentErrorCodes 현재 오류 코드
      * @return 동일 결과
      */
-    private boolean containsErrors(List<String> currentErrorCodes) {
-        System.out.println("PCS 이전 오류 : " + previousErrorCodes + " / 현재 오류 : " + currentErrorCodes);
-        return new HashSet<>(previousErrorCodes).containsAll(currentErrorCodes);
+    private boolean containsErrors(String type, List<String> currentErrorCodes) {
+        if (type.equals("common")) {
+            System.out.println("PCS 이전 공통 오류 : " + previousCommonErrorCodes + " / 현재 오류 : " + currentErrorCodes);
+            return new HashSet<>(previousCommonErrorCodes).containsAll(currentErrorCodes);
+        } else {
+            System.out.println("PCS 이전 오류 : " + previousErrorCodes + " / 현재 오류 : " + currentErrorCodes);
+            return new HashSet<>(previousErrorCodes).containsAll(currentErrorCodes);
+        }
     }
 
     private List<String> setCurrentErrorCodes(List<DeviceErrorVO> currentErrors) {
@@ -374,7 +403,7 @@ public class PCSClient {
         int result = controlQuery.insertControlHistory(controlHistoryVO);
 
         if (result > 0) {
-            new BackupFile().backupData("control", null, controlHistoryVO);
+            backupFile.backupData("control", null, controlHistoryVO);
         }
     }
 
